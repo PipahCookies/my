@@ -109,15 +109,20 @@ function renderOrder(){
   tbody.innerHTML = '';
   let total = 0;
   (order.items || []).forEach(it => {
-    const tr = document.createElement('tr');
-    const subtotal = (it.unitPrice || 0) * (it.qty || 0);
-    total += subtotal;
-    tr.innerHTML = `<td>${escapeHtml(it.name || it.id)}</td>
-                    <td>RM ${formatCurrency(it.unitPrice||0)}</td>
-                    <td>${it.qty}</td>
-                    <td>RM ${formatCurrency(subtotal)}</td>`;
-    tbody.appendChild(tr);
-  });
+  const tr = document.createElement('tr');
+
+  // safely read values (fallbacks)
+  const unitPrice = Number(it.unitPrice || it.price || 0);
+  const qty = Number(it.qty || it.quantity || 0);
+  const subtotal = unitPrice * qty;
+  total += subtotal;
+
+  tr.innerHTML = `<td>${escapeHtml(it.name || it.id || 'Produk')}</td>
+                  <td>RM ${formatCurrency(unitPrice)}</td>
+                  <td>${qty}</td>
+                  <td>RM ${formatCurrency(subtotal)}</td>`;
+  tbody.appendChild(tr);
+});
   document.getElementById('total-display').textContent = 'Jumlah: RM ' + formatCurrency(total);
 }
 
