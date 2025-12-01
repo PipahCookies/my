@@ -5,88 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#A67734">
     <title>WaktuSolatLite</title>
-    <link rel="manifest" href="manifest.json"> 
+    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root[data-theme="light"] {
-            --primary: #A67734;
-            --primary-light: #FDF8F0;
-            --bg: #F8F9FA;
-            --surface: #FFFFFF;
-            --text: #1F2937;
-            --text-muted: #6B7280;
-            --border: #E5E7EB;
-            --shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
-        }
-        
-        :root[data-theme="dark"] {
-            --primary: #D4AF37;
-            --primary-light: #2A2012;
-            --bg: #121212;
-            --surface: #1E1E1E;
-            --text: #F3F4F6;
-            --text-muted: #9CA3AF;
-            --border: #374151;
-            --shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-        }
-
+        :root[data-theme="light"] { --primary:#A67734; --primary-light:#FDF8F0; --bg:#F8F9FA; --surface:#FFFFFF; --text:#1F2937; --text-muted:#6B7280; --border:#E5E7EB; --shadow:0 10px 30px -10px rgba(0,0,0,0.1); }
+        :root[data-theme="dark"] { --primary:#D4AF37; --primary-light:#2A2012; --bg:#121212; --surface:#1E1E1E; --text:#F3F4F6; --text-muted:#9CA3AF; --border:#374151; --shadow:0 10px 30px -10px rgba(0,0,0,0.5); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; transition: background 0.3s, color 0.3s; }
-
-        /* --- VIEWS --- */
+        
         #app-container { flex: 1; overflow-y: auto; padding-bottom: 90px; position: relative; scroll-behavior: smooth; padding: 20px; }
         .view { display: none; animation: fadeIn 0.3s ease; }
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- HEADER --- */
         .header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
         .header-greeting { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
         .header-title { font-size: 26px; font-weight: 800; color: var(--primary); margin: 0; }
-        
         .theme-toggle { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; box-shadow: var(--shadow); transition: transform 0.2s; }
-        .theme-toggle:active { transform: scale(0.9); }
-
-        /* --- HERO --- */
-        .hero-card {
-            background: linear-gradient(135deg, var(--primary), #8a6026);
-            color: white; border-radius: 24px; padding: 24px; margin-top: 5px;
-            position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(166, 119, 52, 0.25);
-        }
+        
+        .hero-card { background: linear-gradient(135deg, var(--primary), #8a6026); color: white; border-radius: 24px; padding: 24px; margin-top: 5px; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(166, 119, 52, 0.25); }
         .prayer-countdown-label { font-size: 14px; opacity: 0.9; font-weight: 500; }
         .prayer-countdown-time { font-size: 48px; font-weight: 800; margin: 5px 0; letter-spacing: -1px; }
         .location-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-
+        
         #announcementBanner { display: none; background: #FEF3C7; color: #92400E; padding: 12px; margin: 15px 0; border-radius: 12px; font-size: 13px; border-left: 4px solid #F59E0B; }
-
-        /* --- CARDS --- */
+        
         .card { background: var(--surface); border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); }
         .section-title { font-size: 18px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
-
-        /* --- PRAYER LIST --- */
         .prayer-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
         .prayer-row:last-child { border-bottom: none; }
         .prayer-info { display: flex; gap: 15px; align-items: center; }
         .prayer-time { font-weight: 700; }
         
-        .bell-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 5px; border-radius: 8px; transition: color 0.2s, background 0.2s; display: flex; align-items: center; }
+        .bell-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 5px; border-radius: 8px; display: flex; align-items: center; }
         .bell-btn.sound { color: var(--primary); background: var(--primary-light); }
         .bell-btn.silent { color: var(--text); opacity: 0.6; }
         .bell-btn.off { color: #ef4444; opacity: 0.5; text-decoration: line-through; }
 
-        /* --- HADITH & QURAN --- */
-        .bookmark-btn { background: none; border: none; cursor: pointer; padding: 5px; color: var(--border); transition: 0.2s; }
+        .bookmark-btn { background: none; border: none; cursor: pointer; padding: 5px; color: var(--border); }
         .bookmark-btn.saved { color: var(--primary); }
         .bookmark-btn svg { width: 20px; height: 20px; fill: currentColor; }
-
+        
         .hadith-text { font-style: italic; line-height: 1.6; font-size: 15px; margin-bottom: 10px; }
         .hadith-source { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-
+        
         .surah-item { display: flex; align-items: center; padding: 16px; background: var(--surface); margin-bottom: 10px; border-radius: 16px; box-shadow: var(--shadow); cursor: pointer; }
         .surah-num { background: var(--primary-light); color: var(--primary); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 700; margin-right: 15px; }
         .surah-arabic { font-family: 'Amiri', serif; font-size: 20px; color: var(--primary); margin-left: auto; }
-
-        /* --- READER MODAL --- */
+        
         #readerModal { position: fixed; inset: 0; background: var(--bg); z-index: 200; transform: translateY(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; }
         #readerModal.open { transform: translateY(0); }
         .reader-header { padding: 15px 20px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
@@ -95,14 +61,12 @@
         .ayah-tools { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .ayah-arabic { font-family: 'Amiri', serif; font-size: 28px; line-height: 2.2; text-align: right; color: var(--text); margin-bottom: 10px; }
         .ayah-trans { font-size: 15px; line-height: 1.6; color: var(--text-muted); }
-
-        /* --- BOTTOM NAV --- */
+        
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--surface); display: grid; grid-template-columns: repeat(4, 1fr); box-shadow: 0 -5px 20px rgba(0,0,0,0.05); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--border); z-index: 100; }
         .nav-item { border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-muted); cursor: pointer; }
         .nav-item.active { color: var(--primary); }
         .nav-label { font-size: 10px; font-weight: 600; }
-
-        /* --- UTILS --- */
+        
         .iframe-wrap { width: 100%; height: 500px; border: none; border-radius: 16px; background: white; margin-bottom: 20px; }
         #pwaInstall { display: none; position: fixed; bottom: 90px; left: 20px; right: 20px; background: var(--text); color: var(--bg); padding: 15px; border-radius: 12px; z-index: 90; align-items: center; justify-content: space-between; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
     </style>
@@ -112,40 +76,26 @@
     <div id="app-container">
         <div id="view-home" class="view active">
             <div class="header-row">
-                <div>
-                    <div class="header-greeting" id="greetings">Assalamualaikum</div>
-                    <h1 class="header-title">WaktuSolatLite</h1>
-                </div>
-                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
-                    <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg>
-                </button>
+                <div><div class="header-greeting" id="greetings">Assalamualaikum</div><h1 class="header-title">WaktuSolatLite</h1></div>
+                <button class="theme-toggle" onclick="toggleTheme()"><svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg></button>
             </div>
-
             <div id="announcementBanner"></div>
-
             <div class="hero-card">
                 <div class="prayer-countdown-label">Next Prayer: <span id="nextPrayerName">Loading...</span></div>
                 <div class="prayer-countdown-time" id="countdown">--:--:--</div>
-                <div class="location-pill">
-                    <span id="locationText">Locating...</span>
-                </div>
+                <div class="location-pill"><span id="locationText">Locating...</span></div>
             </div>
-
             <div class="card" style="margin-top: 20px;">
                 <div class="section-title">Today's Prayers <span style="font-size:12px; color:var(--text-muted)" id="hijriDate">...</span></div>
-                <div id="prayerList">
-                    </div>
+                <div id="prayerList"></div>
             </div>
-
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div class="section-title" style="margin-bottom:5px;">Daily Hadith</div>
-                    <button class="bookmark-btn" id="hadithBookmark" onclick="toggleHadithBookmark(this)">
-                        <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
-                    </button>
+                    <button class="bookmark-btn" id="hadithBookmark" onclick="toggleHadithBookmark(this)"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
                 </div>
                 <div id="dailyHadithContainer">
-                    <div class="hadith-text" id="hadithTextContent">Loading Hadith...</div>
+                    <div class="hadith-text" id="hadithTextContent">Loading...</div>
                     <div class="hadith-source" id="hadithSourceContent"></div>
                 </div>
             </div>
@@ -178,9 +128,8 @@
             <h1 class="header-title" style="margin-bottom: 20px;">Duas & Bookmarks</h1>
             <div class="section-title">Saved Bookmarks</div>
             <div id="bookmarksList" class="card" style="min-height:50px;"></div>
-            
             <div class="section-title">Daily Duas</div>
-            <div id="duasContainer"></div>
+            <div id="duasContainer"><div style="text-align:center;color:gray">Loading Duas from Cloud...</div></div>
         </div>
     </div>
 
@@ -188,165 +137,138 @@
         <div style="font-weight:600">Install WaktuSolatLite</div>
         <button onclick="installPWA()" style="background:var(--bg); color:var(--text); border:none; padding:8px 16px; border-radius:8px; font-weight:700;">Install</button>
     </div>
-
     <div id="readerModal">
-        <div class="reader-header">
-            <div style="font-weight:700" id="readerTitle">Surah</div>
-            <button onclick="closeReader()" style="background:none; border:none; font-size:24px; color:var(--text);">&times;</button>
-        </div>
+        <div class="reader-header"><div style="font-weight:700" id="readerTitle">Surah</div><button onclick="closeReader()" style="background:none; border:none; font-size:24px; color:var(--text);">&times;</button></div>
         <div class="reader-content" id="readerContent"></div>
     </div>
-
     <nav class="nav-bar">
-        <button class="nav-item active" onclick="switchTab('home', this)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            <span class="nav-label">Home</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('quran', this)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-            <span class="nav-label">Quran</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('tools', this)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
-            <span class="nav-label">Tools</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('more', this)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
-            <span class="nav-label">Saved</span>
-        </button>
+        <button class="nav-item active" onclick="switchTab('home', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span class="nav-label">Home</span></button>
+        <button class="nav-item" onclick="switchTab('quran', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span class="nav-label">Quran</span></button>
+        <button class="nav-item" onclick="switchTab('tools', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg><span class="nav-label">Tools</span></button>
+        <button class="nav-item" onclick="switchTab('more', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg><span class="nav-label">Saved</span></button>
     </nav>
 
-<script>
-    const STATE = {
-        lat: 3.1390, lon: 101.6869, // Default KL
-        prayerTimes: null,
-        theme: localStorage.getItem('wsl_theme') || 'light',
-        notifSettings: JSON.parse(localStorage.getItem('wsl_notif_settings') || '{}'),
-        notified: {},
-        bookmarks: JSON.parse(localStorage.getItem('wsl_bookmarks') || '[]')
-    };
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+    // --- CONFIGURATION START ---
+    // PASTE THE SAME CONFIG HERE AS YOU DID IN ADMIN.HTML
+    const firebaseConfig = {
+      apiKey: "AIzaSy...",
+      authDomain: "your-app.firebaseapp.com",
+      databaseURL: "https://your-app.firebaseio.com",
+      projectId: "your-app",
+      storageBucket: "your-app.appspot.com",
+      messagingSenderId: "123456",
+      appId: "1:123456:web:abcdef"
+    };
+    // --- CONFIGURATION END ---
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 1. Announcements
+    onValue(ref(db, 'announcement'), (snap) => {
+        const d = snap.val();
+        const el = document.getElementById('announcementBanner');
+        if(d && d.show && d.text) { el.style.display='block'; el.textContent=d.text; }
+        else { el.style.display='none'; }
+    });
+
+    // 2. Hadiths
+    onValue(ref(db, 'hadiths'), (snap) => {
+        const arr = [];
+        snap.forEach(c => arr.push(c.val()));
+        if(arr.length > 0) {
+            const r = arr[Math.floor(Math.random() * arr.length)];
+            document.getElementById('hadithTextContent').textContent = `"${r.text}"`;
+            document.getElementById('hadithSourceContent').textContent = r.source;
+        } else {
+             // Fallback
+             document.getElementById('hadithTextContent').textContent = `"The best among you is the one who learns the Quran and teaches it."`;
+             document.getElementById('hadithSourceContent').textContent = "Sahih Bukhari";
+        }
+    });
+
+    // 3. Duas
+    onValue(ref(db, 'duas'), (snap) => {
+        const c = document.getElementById('duasContainer');
+        c.innerHTML = '';
+        if(!snap.exists()) { c.innerHTML='<div style="text-align:center;color:gray">No duas added yet.</div>'; return; }
+        snap.forEach(x => {
+            const v = x.val();
+            c.innerHTML += `<div class="card"><div class="section-title">${v.t}</div><div style="font-family:Amiri;text-align:right;font-size:20px;color:var(--primary);margin:10px 0;">${v.a}</div><div style="color:var(--text-muted)">${v.m}</div></div>`;
+        });
+    });
+</script>
+
+<script>
+    // --- EXISTING APP LOGIC ---
+    const STATE = { lat: 3.1390, lon: 101.6869, prayerTimes: null, theme: localStorage.getItem('wsl_theme')||'light', notifSettings: JSON.parse(localStorage.getItem('wsl_notif_settings')||'{}'), notified: {}, bookmarks: JSON.parse(localStorage.getItem('wsl_bookmarks')||'[]') };
     const prayerNames = {Fajr:'Subuh', Dhuhr:'Zohor', Asr:'Asar', Maghrib:'Maghrib', Isha:'Isyak'};
     const prayerKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
     window.addEventListener('DOMContentLoaded', () => {
-        applyTheme();
-        loadData();
-        getLocation();
-        updateGreeting();
-        loadDuas();
-        renderBookmarksList();
-        
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(err=>console.log('SW fail',err));
+        applyTheme(); getLocation(); updateGreeting(); renderBookmarksList(); checkHadithBookmark();
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
         if (window.Notification) Notification.requestPermission();
     });
 
-    function toggleTheme() {
-        STATE.theme = STATE.theme === 'light' ? 'dark' : 'light';
-        localStorage.setItem('wsl_theme', STATE.theme);
-        applyTheme();
-    }
-
+    function toggleTheme() { STATE.theme = STATE.theme==='light'?'dark':'light'; localStorage.setItem('wsl_theme', STATE.theme); applyTheme(); }
     function applyTheme() {
         document.documentElement.setAttribute('data-theme', STATE.theme);
-        const icon = document.getElementById('themeIcon');
-        if(STATE.theme === 'dark') {
-            icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
-        } else {
-            icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>';
-        }
-    }
-
-    // Handles display of static data or previous local storage data
-    function loadData() {
-        const ann = localStorage.getItem('wsl_announcement');
-        if (ann) { 
-            const el = document.getElementById('announcementBanner');
-            el.style.display = 'block'; 
-            el.textContent = ann; 
-        }
-        
-        const savedHadiths = JSON.parse(localStorage.getItem('wsl_custom_hadiths') || '[]');
-        const container = document.getElementById('hadithTextContent');
-        const source = document.getElementById('hadithSourceContent');
-        
-        if (savedHadiths.length > 0) {
-            const r = savedHadiths[Math.floor(Math.random() * savedHadiths.length)];
-            container.textContent = `"${r.text}"`;
-            source.textContent = r.source;
-        } else {
-            container.textContent = "\"The best among you is the one who learns the Quran and teaches it.\"";
-            source.textContent = "Sahih Bukhari";
-        }
-        checkHadithBookmark();
+        document.getElementById('themeIcon').innerHTML = STATE.theme==='dark' ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>' : '<circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>';
     }
 
     function getLocation() {
         if(navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(pos => {
-                STATE.lat = pos.coords.latitude; STATE.lon = pos.coords.longitude;
-                // FIX: Save coords so other HTML files (iframes) can use them
+            navigator.geolocation.getCurrentPosition(p => {
+                STATE.lat = p.coords.latitude; STATE.lon = p.coords.longitude;
                 localStorage.setItem('wsl_coords', JSON.stringify({lat: STATE.lat, lon: STATE.lon}));
-                fetchTimes();
-                document.getElementById('locationText').textContent = "Current Location";
-            }, () => { fetchTimes(); });
-        } else { fetchTimes(); }
+                fetchTimes(); document.getElementById('locationText').textContent = "Current Location";
+            }, () => fetchTimes());
+        } else fetchTimes();
     }
 
     async function fetchTimes() {
         try {
             const res = await fetch(`https://api.aladhan.com/v1/timings/${Math.floor(Date.now()/1000)}?latitude=${STATE.lat}&longitude=${STATE.lon}&method=11`);
-            const data = await res.json();
-            STATE.prayerTimes = data.data.timings;
-            document.getElementById('hijriDate').textContent = `${data.data.date.hijri.day} ${data.data.date.hijri.month.en} ${data.data.date.hijri.year}`;
-            renderPrayerList();
-            startTimer();
+            const d = await res.json();
+            STATE.prayerTimes = d.data.timings;
+            document.getElementById('hijriDate').textContent = `${d.data.date.hijri.day} ${d.data.date.hijri.month.en} ${d.data.date.hijri.year}`;
+            renderPrayerList(); startTimer();
         } catch(e) {}
     }
 
     function renderPrayerList() {
-        const list = document.getElementById('prayerList');
-        list.innerHTML = '';
-        prayerKeys.forEach(key => {
-            const setting = STATE.notifSettings[key] || 'sound';
-            const div = document.createElement('div');
-            div.className = 'prayer-row';
-            div.innerHTML = `
-                <div class="prayer-info">
-                    <span>${prayerNames[key]}</span>
-                    <span class="prayer-time">${convertTo12Hour(STATE.prayerTimes[key])}</span>
-                </div>
-                <button class="bell-btn ${setting}" onclick="cycleNotif('${key}')">${getBellIcon(setting)}</button>
-            `;
-            list.appendChild(div);
+        const l = document.getElementById('prayerList'); l.innerHTML = '';
+        prayerKeys.forEach(k => {
+            const s = STATE.notifSettings[k]||'sound';
+            l.innerHTML += `<div class="prayer-row"><div class="prayer-info"><span>${prayerNames[k]}</span><span class="prayer-time">${convertTo12Hour(STATE.prayerTimes[k])}</span></div><button class="bell-btn ${s}" onclick="cycleNotif('${k}')">${getBellIcon(s)}</button></div>`;
         });
     }
 
-    function getBellIcon(mode) {
-        if(mode === 'sound') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`;
-        if(mode === 'silent') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+    function getBellIcon(m) {
+        if(m==='sound') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`;
+        if(m==='silent') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
         return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
     }
 
-    function cycleNotif(key) {
-        const modes = ['sound', 'silent', 'off'];
-        let current = STATE.notifSettings[key] || 'sound';
-        let next = modes[(modes.indexOf(current) + 1) % 3];
-        STATE.notifSettings[key] = next;
+    function cycleNotif(k) {
+        const m=['sound','silent','off']; const c=STATE.notifSettings[k]||'sound';
+        STATE.notifSettings[k] = m[(m.indexOf(c)+1)%3];
         localStorage.setItem('wsl_notif_settings', JSON.stringify(STATE.notifSettings));
         renderPrayerList();
     }
-
     function convertTo12Hour(t) { let [h,m]=t.split(':'); h=parseInt(h); const am=h>=12?'PM':'AM'; h=h%12||12; return `${h}:${m} ${am}`; }
 
     function startTimer() {
         setInterval(() => {
             if(!STATE.prayerTimes) return;
-            const now = new Date();
-            let next = null, nTime = null;
+            const now = new Date(); let next=null, nTime=null;
             for(let k of prayerKeys) {
-                const [h,m] = STATE.prayerTimes[k].split(':');
-                const p = new Date(); p.setHours(h,m,0);
+                const [h,m] = STATE.prayerTimes[k].split(':'); const p = new Date(); p.setHours(h,m,0);
                 if(p > now) { next = k; nTime = p; break; }
             }
             if(!next) { next='Fajr'; const [h,m]=STATE.prayerTimes['Fajr'].split(':'); nTime=new Date(); nTime.setDate(nTime.getDate()+1); nTime.setHours(h,m,0); }
@@ -359,124 +281,82 @@
             checkNotifications(STATE.prayerTimes);
         }, 1000);
     }
-
+    
     function checkNotifications(pt) {
-        const now = new Date();
-        const dateStr = now.toDateString();
-        if(localStorage.getItem('wsl_last_date') !== dateStr) { STATE.notified = {}; localStorage.setItem('wsl_last_date', dateStr); }
-        prayerKeys.forEach(key => {
-            const setting = STATE.notifSettings[key] || 'sound';
-            if (setting === 'off') return;
-            const [h, m] = pt[key].split(':');
-            const pTime = new Date(); pTime.setHours(h, m, 0, 0);
-            const diffNow = (now - pTime) / 1000;
-            if (diffNow >= 0 && diffNow < 60 && !STATE.notified[`${key}_now`]) {
-                sendNoti(`Waktu ${prayerNames[key]}`, `Time for ${prayerNames[key]} prayer.`, setting === 'silent');
-                STATE.notified[`${key}_now`] = true;
+        const now = new Date(); const dStr = now.toDateString();
+        if(localStorage.getItem('wsl_last_date')!==dStr) { STATE.notified={}; localStorage.setItem('wsl_last_date',dStr); }
+        prayerKeys.forEach(k => {
+            if((STATE.notifSettings[k]||'sound')==='off') return;
+            const [h,m]=pt[k].split(':'); const p=new Date(); p.setHours(h,m,0,0);
+            const diff=(now-p)/1000;
+            if(diff>=0 && diff<60 && !STATE.notified[k]) {
+                if(Notification.permission==='granted') new Notification(`Waktu ${prayerNames[k]}`, {body:`Time for ${prayerNames[k]}`, silent:(STATE.notifSettings[k]==='silent')});
+                STATE.notified[k]=true;
             }
         });
     }
 
-    function sendNoti(title, body, isSilent) {
-        if (Notification.permission === 'granted') { new Notification(title, { body: body, silent: isSilent }); }
-    }
-
     async function loadQuranList() {
-        const list = document.getElementById('surahList');
-        if(list.children.length > 0) return;
-        list.innerHTML = 'Loading...';
+        const l=document.getElementById('surahList'); if(l.children.length>0)return; l.innerHTML='Loading...';
         try {
-            const res = await fetch('https://api.alquran.cloud/v1/surah');
-            const data = await res.json();
-            list.innerHTML = '';
-            data.data.forEach(s => {
-                const el = document.createElement('div');
-                el.className = 'surah-item';
-                el.innerHTML = `<div class="surah-num">${s.number}</div><div style="flex:1"><div style="font-weight:700">${s.englishName}</div><div style="font-size:12px;color:var(--text-muted)">${s.englishNameTranslation}</div></div><div class="surah-arabic">${s.name}</div>`;
-                el.onclick = () => openReader(s.number, s.englishName);
-                list.appendChild(el);
+            const r=await fetch('https://api.alquran.cloud/v1/surah'); const d=await r.json(); l.innerHTML='';
+            d.data.forEach(s => {
+                l.innerHTML += `<div class="surah-item" onclick="openReader(${s.number},'${s.englishName}')"><div class="surah-num">${s.number}</div><div style="flex:1"><div style="font-weight:700">${s.englishName}</div><div style="font-size:12px;color:var(--text-muted)">${s.englishNameTranslation}</div></div><div class="surah-arabic">${s.name}</div></div>`;
             });
-        } catch(e) {}
+        } catch(e){}
     }
 
-    async function openReader(num, title) {
-        document.getElementById('readerModal').classList.add('open');
-        document.getElementById('readerTitle').textContent = title;
-        document.getElementById('readerContent').innerHTML = 'Loading Ayahs...';
-        const lang = document.getElementById('quranLangSelect').value;
+    async function openReader(n,t) {
+        const m=document.getElementById('readerModal'); m.classList.add('open'); document.getElementById('readerTitle').textContent=t;
+        const c=document.getElementById('readerContent'); c.innerHTML='Loading...';
+        const lang=document.getElementById('quranLangSelect').value;
         try {
-            const [ar, tr] = await Promise.all([ fetch(`https://api.alquran.cloud/v1/surah/${num}`), fetch(`https://api.alquran.cloud/v1/surah/${num}/${lang}`) ]);
-            const d1 = await ar.json(); const d2 = await tr.json();
-            let html = '';
-            if(num!==1 && num!==9) html += `<div style="text-align:center;font-family:Amiri;font-size:24px;margin-bottom:20px;">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>`;
+            const [r1,r2]=await Promise.all([fetch(`https://api.alquran.cloud/v1/surah/${n}`), fetch(`https://api.alquran.cloud/v1/surah/${n}/${lang}`)]);
+            const d1=await r1.json(); const d2=await r2.json();
+            let h = (n!==1&&n!==9) ? `<div style="text-align:center;font-family:Amiri;font-size:24px;margin-bottom:20px;">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>` : '';
             d1.data.ayahs.forEach((a,i) => {
-                const trans = d2.data.ayahs[i].text;
-                const isSaved = isAyahBookmarked(num, a.numberInSurah);
-                html += `<div class="ayah-block"><div class="ayah-tools"><span style="font-size:12px;color:var(--text-muted)">${num}:${a.numberInSurah}</span><button class="bookmark-btn ${isSaved?'saved':''}" onclick="toggleAyahBookmark(this, ${num}, ${a.numberInSurah}, '${a.text.replace(/'/g, "")}', '${trans.replace(/'/g, "")}', '${title}')"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button></div><div class="ayah-arabic">${a.text}</div><div class="ayah-trans">${trans}</div></div>`;
+                const tr = d2.data.ayahs[i].text;
+                const sv = STATE.bookmarks.some(b=>b.id===`ayah_${n}_${a.numberInSurah}`);
+                h += `<div class="ayah-block"><div class="ayah-tools"><span style="font-size:12px;color:var(--text-muted)">${n}:${a.numberInSurah}</span><button class="bookmark-btn ${sv?'saved':''}" onclick="togAyah(this,${n},${a.numberInSurah},'${a.text.replace(/'/g,"")}','${tr.replace(/'/g,"")}','${t}')"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button></div><div class="ayah-arabic">${a.text}</div><div class="ayah-trans">${tr}</div></div>`;
             });
-            document.getElementById('readerContent').innerHTML = html;
-        } catch(e){ document.getElementById('readerContent').innerHTML = 'Error loading.'; }
+            c.innerHTML=h;
+        } catch(e){ c.innerHTML='Error loading.'; }
     }
-
-    function toggleAyahBookmark(btn, surahNum, ayahNum, arText, trText, surahName) {
-        const id = `ayah_${surahNum}_${ayahNum}`;
-        const idx = STATE.bookmarks.findIndex(b => b.id === id);
-        if (idx > -1) { STATE.bookmarks.splice(idx, 1); btn.classList.remove('saved'); } 
-        else { STATE.bookmarks.push({ id, type:'ayah', surahNum, ayahNum, arText, trText, surahName }); btn.classList.add('saved'); }
-        saveBookmarks();
+    
+    window.togAyah = function(b,s,a,ar,tr,sn) {
+        const id=`ayah_${s}_${a}`; const i=STATE.bookmarks.findIndex(x=>x.id===id);
+        if(i>-1){STATE.bookmarks.splice(i,1);b.classList.remove('saved');}
+        else{STATE.bookmarks.push({id,type:'ayah',surahNum:s,ayahNum:a,arText:ar,trText:tr,surahName:sn});b.classList.add('saved');}
+        localStorage.setItem('wsl_bookmarks',JSON.stringify(STATE.bookmarks)); renderBookmarksList();
     }
-    function isAyahBookmarked(s, a) { return STATE.bookmarks.some(b => b.id === `ayah_${s}_${a}`); }
-
-    function toggleHadithBookmark(btn) {
-        const text = document.getElementById('hadithTextContent').textContent;
-        const src = document.getElementById('hadithSourceContent').textContent;
-        const id = `hadith_${text.substring(0,10)}`;
-        const idx = STATE.bookmarks.findIndex(b => b.id === id);
-        if (idx > -1) { STATE.bookmarks.splice(idx, 1); btn.classList.remove('saved'); } 
-        else { STATE.bookmarks.push({ id, type:'hadith', text, src }); btn.classList.add('saved'); }
-        saveBookmarks();
+    window.toggleHadithBookmark = function(b) {
+        const t=document.getElementById('hadithTextContent').textContent; const s=document.getElementById('hadithSourceContent').textContent;
+        const id=`hadith_${t.substring(0,10)}`; const i=STATE.bookmarks.findIndex(x=>x.id===id);
+        if(i>-1){STATE.bookmarks.splice(i,1);b.classList.remove('saved');}
+        else{STATE.bookmarks.push({id,type:'hadith',text:t,src:s});b.classList.add('saved');}
+        localStorage.setItem('wsl_bookmarks',JSON.stringify(STATE.bookmarks)); renderBookmarksList();
     }
     function checkHadithBookmark() {
-        const text = document.getElementById('hadithTextContent').textContent;
-        const id = `hadith_${text.substring(0,10)}`;
-        const btn = document.getElementById('hadithBookmark');
-        if(STATE.bookmarks.some(b => b.id === id)) btn.classList.add('saved'); else btn.classList.remove('saved');
+        const t=document.getElementById('hadithTextContent').textContent;
+        const b=document.getElementById('hadithBookmark');
+        if(STATE.bookmarks.some(x=>x.id===`hadith_${t.substring(0,10)}`)) b.classList.add('saved'); else b.classList.remove('saved');
     }
-
-    function saveBookmarks() { localStorage.setItem('wsl_bookmarks', JSON.stringify(STATE.bookmarks)); renderBookmarksList(); }
     function renderBookmarksList() {
-        const el = document.getElementById('bookmarksList');
-        if (STATE.bookmarks.length === 0) { el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;text-align:center;">No bookmarks yet.</div>'; return; }
-        el.innerHTML = '';
-        STATE.bookmarks.forEach(b => {
-            const div = document.createElement('div');
-            div.style.borderBottom = '1px solid var(--border)'; div.style.padding = '10px 0'; div.style.fontSize = '13px';
-            if (b.type === 'ayah') { div.innerHTML = `<div><strong>${b.surahName} (${b.surahNum}:${b.ayahNum})</strong></div><div style="color:var(--text-muted)">${b.trText.substring(0,50)}...</div>`; } 
-            else { div.innerHTML = `<div><strong>Hadith:</strong> ${b.text.substring(0,50)}...</div>`; }
-            el.appendChild(div);
+        const l=document.getElementById('bookmarksList'); if(STATE.bookmarks.length===0){l.innerHTML='<div style="color:var(--text-muted);font-size:13px;text-align:center;">No bookmarks.</div>';return;}
+        l.innerHTML=''; STATE.bookmarks.forEach(b => {
+            l.innerHTML += `<div style="border-bottom:1px solid var(--border);padding:10px 0;font-size:13px;">${b.type==='ayah'?`<div><strong>${b.surahName} (${b.surahNum}:${b.ayahNum})</strong></div><div style="color:var(--text-muted)">${b.trText.substring(0,50)}...</div>`:`<div><strong>Hadith:</strong> ${b.text.substring(0,50)}...</div>`}</div>`;
         });
     }
 
-    function updateGreeting() {
-        const h = new Date().getHours();
-        document.getElementById('greetings').textContent = `Assalamualaikum, ${h < 12 ? 'Good Morning' : h < 18 ? 'Good Afternoon' : 'Good Evening'}`;
-    }
-    function loadDuas() {
-        const d = JSON.parse(localStorage.getItem('wsl_custom_duas') || '[]');
-        const container = document.getElementById('duasContainer');
-        container.innerHTML = '';
-        d.forEach(x => { container.innerHTML += `<div class="card"><div class="section-title">${x.t}</div><div style="font-family:Amiri;text-align:right;font-size:20px;color:var(--primary);margin:10px 0;">${x.a}</div><div style="color:var(--text-muted)">${x.m}</div></div>`; });
-    }
-    function switchTab(id, btn) {
-        document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-        document.getElementById('view-'+id).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-        btn.classList.add('active');
+    function updateGreeting() { const h=new Date().getHours(); document.getElementById('greetings').textContent=`Assalamualaikum, ${h<12?'Good Morning':h<18?'Good Afternoon':'Good Evening'}`; }
+    function switchTab(id, b) {
+        document.querySelectorAll('.view').forEach(v=>v.classList.remove('active')); document.getElementById('view-'+id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); b.classList.add('active');
         if(id==='quran') loadQuranList();
     }
-    function closeReader(){ document.getElementById('readerModal').classList.remove('open'); }
-    let defPrompt; window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();defPrompt=e;document.getElementById('pwaInstall').style.display='flex'});
-    function installPWA(){if(defPrompt)defPrompt.prompt();}
+    window.closeReader = function(){ document.getElementById('readerModal').classList.remove('open'); }
+    let dp; window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;document.getElementById('pwaInstall').style.display='flex'});
+    window.installPWA = function(){if(dp)dp.prompt();}
 </script>
 </body>
 </html>
