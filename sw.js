@@ -4,6 +4,8 @@ const ASSETS_TO_CACHE = [
     './index.html',
     './images/icon-192.png',
     './images/icon-512.png',
+    './Takwim-hijri.html',
+    './qiblat.html',
     './manifest.json'
 ];
 
