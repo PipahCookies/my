@@ -3,172 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WaktuSolatLite Controller</title>
+    <title>WSL Admin Panel</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { font-family: -apple-system, system-ui, sans-serif; background: #f4f4f5; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h1 { color: #A67734; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        h2 { margin-top: 30px; font-size: 18px; color: #555; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; }
-        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
-        button { background: #A67734; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        button:hover { background: #8a6026; }
-        button.danger { background: #dc2626; margin-left: 10px; }
-        .list-item { background: #f9fafb; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .success-msg { color: green; display: none; margin-top: 10px; font-weight: bold; }
-        .status-indicator { font-size: 12px; color: #666; margin-bottom: 20px; }
+        body { background-color: #1a1a1a; color: #f3f4f6; }
+        .card { background-color: #2a2a2a; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        #map { height: 500px; width: 100%; border-radius: 12px; z-index: 1; }
     </style>
 </head>
-<body>
+<body class="p-6">
 
-<div class="container">
-    <h1>App Controller</h1>
-    <div class="status-indicator" id="connectionStatus">Connecting to Firebase...</div>
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-yellow-500">WaktuSolatLite Analytics</h1>
+            <div class="text-sm text-gray-400">Live Dashboard</div>
+        </div>
 
-    <h2>📢 Homepage Announcement</h2>
-    <div class="form-group">
-        <label>Banner Text (Leave empty to hide)</label>
-        <input type="text" id="announcementInput" placeholder="e.g. Selamat Hari Raya!">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="card">
+                <div class="text-gray-400 text-sm mb-1">Total Installs</div>
+                <div class="text-4xl font-bold" id="totalUsers">0</div>
+            </div>
+            <div class="card">
+                <div class="text-gray-400 text-sm mb-1">Active Today</div>
+                <div class="text-4xl font-bold text-green-500" id="activeUsers">0</div>
+            </div>
+            <div class="card">
+                <div class="text-gray-400 text-sm mb-1">Latest Activity</div>
+                <div class="text-lg font-mono" id="lastActivity">-</div>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="card mb-8">
+            <h2 class="text-xl font-bold mb-4">User Distributions</h2>
+            <div id="map"></div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="card">
+            <h2 class="text-xl font-bold mb-4">Recent Users</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-gray-500 border-b border-gray-700">
+                            <th class="p-3">Install ID</th>
+                            <th class="p-3">Device</th>
+                            <th class="p-3">Coords</th>
+                            <th class="p-3">Last Active</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody" class="text-sm">
+                        <tr><td colspan="4" class="p-3 text-center text-gray-500">Loading data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <button id="btnSaveAnn">Update Banner</button>
 
-    <h2>📚 Hadith Collection</h2>
-    <div class="form-group">
-        <label>Hadith Text</label>
-        <textarea id="hadithText" rows="3" placeholder="Enter Hadith text..."></textarea>
-    </div>
-    <div class="form-group">
-        <label>Source</label>
-        <input type="text" id="hadithSource" placeholder="e.g. Riwayat Muslim">
-    </div>
-    <button id="btnAddHadith">Add Hadith</button>
-    <div id="hadithList" style="margin-top: 20px;">Loading list...</div>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <h2>🤲 Add New Dua</h2>
-    <div class="form-group">
-        <label>Title</label>
-        <input type="text" id="duaTitle" placeholder="Title">
-    </div>
-    <div class="form-group">
-        <label>Arabic</label>
-        <input type="text" id="duaArabic" placeholder="Arabic text..." dir="rtl">
-    </div>
-    <div class="form-group">
-        <label>Translation</label>
-        <input type="text" id="duaTrans" placeholder="Meaning...">
-    </div>
-    <button id="btnAddDua">Add Dua</button>
-    <div id="duaList" style="margin-top: 20px;"></div>
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    <div id="msg" class="success-msg">Action Successful!</div>
-</div>
+        // --- PASTE YOUR FIREBASE CONFIG HERE ---
+        const firebaseConfig = {
+  apiKey: "AIzaSyBQMVNRDYsKHRj_-bwKbFICyN6XseL3CDI",
+  authDomain: "waktusolatlite.firebaseapp.com",
+  projectId: "waktusolatlite",
+  storageBucket: "waktusolatlite.firebasestorage.app",
+  messagingSenderId: "86910439082",
+  appId: "1:86910439082:web:e482d01e1451e58179cad3"
+};
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        // Initialize Map
+        const map = L.map('map').setView([3.1390, 101.6869], 5); // Default to Malaysia center
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
 
-  // --- CONFIGURATION START ---
-  // 1. Go to Firebase Console > Project Settings > General > Your Apps
-  // 2. Copy the "const firebaseConfig = { ... }" block
-  // 3. Paste it below replacing the placeholder:
-  
-  const firebaseConfig = {
-    // PASTE YOUR FIREBASE CONFIG HERE
-    apiKey: "AIzaSy...",
-    authDomain: "your-app.firebaseapp.com",
-    databaseURL: "https://your-app.firebaseio.com",
-    projectId: "your-app",
-    storageBucket: "your-app.appspot.com",
-    messagingSenderId: "123456",
-    appId: "1:123456:web:abcdef"
-  };
-  // --- CONFIGURATION END ---
+        const markers = [];
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
 
-  document.getElementById('connectionStatus').textContent = "Connected to Database ✅";
+            onValue(ref(db, 'users'), (snapshot) => {
+                const users = snapshot.val();
+                if (!users) {
+                    document.getElementById('totalUsers').textContent = "0";
+                    document.getElementById('userTableBody').innerHTML = '<tr><td colspan="4" class="p-3 text-center">No users found</td></tr>';
+                    return;
+                }
 
-  // 1. ANNOUNCEMENT
-  // Load current
-  onValue(ref(db, 'announcement'), (snap) => {
-      const val = snap.val();
-      if(val && val.text) document.getElementById('announcementInput').value = val.text;
-  });
+                const userList = Object.keys(users).map(key => ({ id: key, ...users[key] }));
+                
+                // Sort by last active (newest first)
+                userList.sort((a, b) => b.lastActive - a.lastActive);
 
-  document.getElementById('btnSaveAnn').addEventListener('click', () => {
-      const text = document.getElementById('announcementInput').value;
-      set(ref(db, 'announcement'), {
-          text: text,
-          show: !!text
-      }).then(showMsg).catch(alert);
-  });
+                // Update Stats
+                document.getElementById('totalUsers').textContent = userList.length;
+                
+                const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+                const activeCount = userList.filter(u => u.lastActive > oneDayAgo).length;
+                document.getElementById('activeUsers').textContent = activeCount;
+                
+                if(userList.length > 0) {
+                    document.getElementById('lastActivity').textContent = new Date(userList[0].lastActive).toLocaleTimeString();
+                }
 
-  // 2. HADITH
-  document.getElementById('btnAddHadith').addEventListener('click', () => {
-      const text = document.getElementById('hadithText').value;
-      const source = document.getElementById('hadithSource').value;
-      if(!text) return;
-      push(ref(db, 'hadiths'), { text, source })
-        .then(() => {
-            document.getElementById('hadithText').value = '';
-            document.getElementById('hadithSource').value = '';
-            showMsg();
-        });
-  });
+                // Update Table
+                const tbody = document.getElementById('userTableBody');
+                tbody.innerHTML = '';
+                userList.slice(0, 20).forEach(u => { // Show top 20
+                    const date = new Date(u.lastActive).toLocaleString();
+                    const shortId = u.id.substring(0, 8) + '...';
+                    const latLon = u.lat && u.lon ? `${u.lat.toFixed(4)}, ${u.lon.toFixed(4)}` : 'N/A';
+                    
+                    const row = `
+                        <tr class="border-b border-gray-800 hover:bg-white/5">
+                            <td class="p-3 font-mono text-yellow-600">${shortId}</td>
+                            <td class="p-3 text-gray-300">${u.device || 'Unknown'}</td>
+                            <td class="p-3 font-mono text-gray-400">${latLon}</td>
+                            <td class="p-3 text-gray-400">${date}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
 
-  onValue(ref(db, 'hadiths'), (snapshot) => {
-      const list = document.getElementById('hadithList');
-      list.innerHTML = '';
-      if(!snapshot.exists()) { list.innerHTML = '<small>No hadiths found.</small>'; return; }
-      
-      snapshot.forEach((child) => {
-          const key = child.key;
-          const val = child.val();
-          const div = document.createElement('div');
-          div.className = 'list-item';
-          div.innerHTML = `
-            <div><strong>${val.source}:</strong> ${val.text.substring(0,30)}...</div>
-            <button class="danger" data-key="${key}">Delete</button>
-          `;
-          div.querySelector('button').onclick = () => remove(ref(db, `hadiths/${key}`));
-          list.appendChild(div);
-      });
-  });
+                // Update Map Markers
+                // Clear old markers
+                markers.forEach(m => map.removeLayer(m));
+                markers.length = 0;
 
-  // 3. DUAS
-  document.getElementById('btnAddDua').addEventListener('click', () => {
-      const t = document.getElementById('duaTitle').value;
-      const a = document.getElementById('duaArabic').value;
-      const m = document.getElementById('duaTrans').value;
-      if(!t) return;
-      push(ref(db, 'duas'), { t, a, m }).then(showMsg);
-  });
-  
-  // Optional: List Duas to delete them
-  onValue(ref(db, 'duas'), (snapshot) => {
-      const list = document.getElementById('duaList');
-      list.innerHTML = '';
-      snapshot.forEach((child) => {
-          const key = child.key;
-          const val = child.val();
-          const div = document.createElement('div');
-          div.className = 'list-item';
-          div.innerHTML = `
-            <div><strong>${val.t}</strong></div>
-            <button class="danger" data-key="${key}">Delete</button>
-          `;
-          div.querySelector('button').onclick = () => remove(ref(db, `duas/${key}`));
-          list.appendChild(div);
-      });
-  });
+                userList.forEach(u => {
+                    if (u.lat && u.lon) {
+                        const marker = L.circleMarker([u.lat, u.lon], {
+                            radius: 6,
+                            fillColor: "#eab308", // Yellow-500
+                            color: "#fff",
+                            weight: 1,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        }).addTo(map);
+                        
+                        marker.bindPopup(`<b>User:</b> ${u.id.substring(0,6)}...<br><b>Last Seen:</b> ${new Date(u.lastActive).toLocaleDateString()}`);
+                        markers.push(marker);
+                    }
+                });
 
-  function showMsg() {
-      const msg = document.getElementById('msg');
-      msg.style.display = 'block';
-      setTimeout(() => msg.style.display = 'none', 2000);
-  }
-</script>
+            });
+
+        } catch (e) {
+            console.error("Firebase Error:", e);
+            document.getElementById('userTableBody').innerHTML = '<tr><td colspan="4" class="p-3 text-center text-red-500">Error connecting to Firebase</td></tr>';
+        }
+    </script>
 </body>
 </html>
+
