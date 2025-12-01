@@ -2,6 +2,8 @@ const CACHE_NAME = 'waktusolat-v1';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
+    './images/icon-192.png',
+    './images/icon-512.png',
     './manifest.json'
 ];
 
