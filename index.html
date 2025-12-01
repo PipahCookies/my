@@ -8,11 +8,10 @@
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root[data-theme="light"] { --primary:#A67734; --primary-light:#FDF8F0; --bg:#F8F9FA; --surface:#FFFFFF; --text:#1F2937; --text-muted:#6B7280; --border:#E5E7EB; --shadow:0 10px 30px -10px rgba(0,0,0,0.1); }
-        :root[data-theme="dark"] { --primary:#D4AF37; --primary-light:#2A2012; --bg:#121212; --surface:#1E1E1E; --text:#F3F4F6; --text-muted:#9CA3AF; --border:#374151; --shadow:0 10px 30px -10px rgba(0,0,0,0.5); }
+        :root[data-theme="light"] { --primary:#A67734; --primary-light:#FDF8F0; --bg:#F8F9FA; --surface:#FFFFFF; --text:#1F2937; --text-muted:#6B7280; --border:#E5E7EB; --shadow:0 10px 30px -10px rgba(0,0,0,0.1); --overlay:rgba(0,0,0,0.4); }
+        :root[data-theme="dark"] { --primary:#D4AF37; --primary-light:#2A2012; --bg:#121212; --surface:#1E1E1E; --text:#F3F4F6; --text-muted:#9CA3AF; --border:#374151; --shadow:0 10px 30px -10px rgba(0,0,0,0.5); --overlay:rgba(0,0,0,0.8); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* Fixed Safe Area for iPhones */
         body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; transition: background 0.3s, color 0.3s; padding-top: env(safe-area-inset-top); }
         
         #app-container { flex: 1; overflow-y: auto; padding-bottom: 110px; position: relative; scroll-behavior: smooth; padding: 20px; }
@@ -20,11 +19,17 @@
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
+        /* Header */
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .header-left { display: flex; flex-direction: column; }
         .header-greeting { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
         .header-title { font-size: 26px; font-weight: 800; color: var(--primary); margin: 0; }
-        .theme-toggle { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; box-shadow: var(--shadow); transition: transform 0.2s; }
+        .header-actions { display: flex; gap: 10px; }
         
+        .icon-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; box-shadow: var(--shadow); transition: transform 0.2s; }
+        .icon-btn:active { transform: scale(0.95); }
+
+        /* Cards & Heroes */
         .hero-card { background: linear-gradient(135deg, var(--primary), #8a6026); color: white; border-radius: 24px; padding: 24px; margin-top: 5px; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(166, 119, 52, 0.25); }
         .prayer-countdown-label { font-size: 14px; opacity: 0.9; font-weight: 500; }
         .prayer-countdown-time { font-size: 48px; font-weight: 800; margin: 5px 0; letter-spacing: -1px; }
@@ -34,6 +39,8 @@
         
         .card { background: var(--surface); border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); }
         .section-title { font-size: 18px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        
+        /* Prayer List */
         .prayer-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
         .prayer-row:last-child { border-bottom: none; }
         .prayer-info { display: flex; gap: 15px; align-items: center; }
@@ -48,28 +55,62 @@
         .bookmark-btn.saved { color: var(--primary); }
         .bookmark-btn svg { width: 20px; height: 20px; fill: currentColor; }
         
-        .hadith-text { font-style: italic; line-height: 1.6; font-size: 15px; margin-bottom: 10px; }
-        .hadith-source { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-        
+        /* Surah List */
         .surah-item { display: flex; align-items: center; padding: 16px; background: var(--surface); margin-bottom: 10px; border-radius: 16px; box-shadow: var(--shadow); cursor: pointer; }
         .surah-num { background: var(--primary-light); color: var(--primary); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 700; margin-right: 15px; }
         .surah-arabic { font-family: 'Amiri', serif; font-size: 20px; color: var(--primary); margin-left: auto; }
+
+        /* Side Panel (Modern Drawer) */
+        #sidePanelOverlay { position: fixed; inset: 0; background: var(--overlay); z-index: 290; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #sidePanelOverlay.open { opacity: 1; pointer-events: auto; }
         
-        #readerModal { position: fixed; inset: 0; background: var(--bg); z-index: 200; transform: translateY(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
+        #sidePanel { 
+            position: fixed; top: 0; right: 0; bottom: 0; width: 85%; max-width: 400px; 
+            background: var(--bg); z-index: 300; transform: translateX(100%); 
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); 
+            box-shadow: -5px 0 30px rgba(0,0,0,0.2); 
+            display: flex; flex-direction: column;
+            padding-top: env(safe-area-inset-top);
+        }
+        #sidePanel.open { transform: translateX(0); }
+        
+        .panel-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: var(--surface); }
+        .panel-content { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        /* Tools in Side Panel */
+        .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .tool-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 15px; text-align: center; cursor: pointer; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .tool-btn span { font-size: 12px; font-weight: 700; }
+        .tool-btn svg { color: var(--primary); }
+
+        .hadith-card { background: var(--surface); border-radius: 16px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .hadith-text { font-style: italic; font-size: 14px; line-height: 1.5; color: var(--text); margin-bottom: 8px; }
+        .hadith-source { font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; }
+
+        .panduan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .panduan-item { background: var(--surface); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; }
+        .panduan-img { width: 100%; height: 80px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 24px; }
+        .panduan-title { padding: 10px; font-size: 12px; font-weight: 600; text-align: center; }
+
+        /* Modals (Reader & Content) */
+        #readerModal { position: fixed; inset: 0; background: var(--bg); z-index: 400; transform: translateY(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
         #readerModal.open { transform: translateY(0); }
         .reader-header { padding: 15px 20px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
         .reader-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 50px; }
+        
         .ayah-block { margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px dashed var(--border); position: relative; }
         .ayah-tools { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .ayah-arabic { font-family: 'Amiri', serif; font-size: 28px; line-height: 2.2; text-align: right; color: var(--text); margin-bottom: 10px; }
-        .ayah-trans { font-size: 15px; line-height: 1.6; color: var(--text-muted); }
-        
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: calc(70px + env(safe-area-inset-bottom)); background: var(--surface); display: grid; grid-template-columns: repeat(4, 1fr); box-shadow: 0 -5px 20px rgba(0,0,0,0.05); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--border); z-index: 100; }
+        .ayah-arabic { font-family: 'Amiri', serif; font-size: 26px; line-height: 2.2; text-align: right; color: var(--text); margin-bottom: 10px; }
+        .ayah-trans { font-size: 14px; line-height: 1.6; color: var(--text-muted); }
+
+        .iframe-wrap { width: 100%; border: none; border-radius: 12px; background: white; margin-top: 10px; }
+
+        /* Navigation */
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: calc(65px + env(safe-area-inset-bottom)); background: var(--surface); display: grid; grid-template-columns: repeat(3, 1fr); box-shadow: 0 -5px 20px rgba(0,0,0,0.05); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--border); z-index: 100; }
         .nav-item { border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-muted); cursor: pointer; }
         .nav-item.active { color: var(--primary); }
         .nav-label { font-size: 10px; font-weight: 600; }
         
-        .iframe-wrap { width: 100%; height: 500px; border: none; border-radius: 16px; background: white; margin-bottom: 20px; }
         #pwaInstall { display: none; position: fixed; bottom: 90px; left: 20px; right: 20px; background: var(--text); color: var(--bg); padding: 15px; border-radius: 12px; z-index: 90; align-items: center; justify-content: space-between; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
     </style>
 </head>
@@ -78,28 +119,27 @@
     <div id="app-container">
         <div id="view-home" class="view active">
             <div class="header-row">
-                <div><div class="header-greeting" id="greetings">Assalamualaikum</div><h1 class="header-title">WaktuSolat</h1></div>
-                <button class="theme-toggle" onclick="toggleTheme()"><svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg></button>
+                <div class="header-left">
+                    <div class="header-greeting" id="greetings">Assalamualaikum</div>
+                    <h1 class="header-title">WaktuSolat</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="toggleTheme()"><svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg></button>
+                    <button class="icon-btn" onclick="toggleSidePanel()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+                </div>
             </div>
+            
             <div id="announcementBanner"></div>
+            
             <div class="hero-card">
                 <div class="prayer-countdown-label">Next Prayer: <span id="nextPrayerName">Loading...</span></div>
                 <div class="prayer-countdown-time" id="countdown">--:--:--</div>
                 <div class="location-pill"><span id="locationText">Locating...</span></div>
             </div>
+            
             <div class="card" style="margin-top: 20px;">
                 <div class="section-title">Today's Prayers <span style="font-size:12px; color:var(--text-muted)" id="hijriDate">...</span></div>
                 <div id="prayerList"></div>
-            </div>
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div class="section-title" style="margin-bottom:5px;">Daily Hadith</div>
-                    <button class="bookmark-btn" id="hadithBookmark" onclick="toggleHadithBookmark(this)"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
-                </div>
-                <div id="dailyHadithContainer">
-                    <div class="hadith-text" id="hadithTextContent">Loading...</div>
-                    <div class="hadith-source" id="hadithSourceContent"></div>
-                </div>
             </div>
         </div>
 
@@ -109,31 +149,72 @@
                 <option value="ms.basmeih">Malay</option>
                 <option value="en.sahih">English</option>
                 <option value="id.indonesian">Indonesian</option>
-                <option value="zh.mazhonggang">Mandarin</option>
             </select>
             <div id="surahList"></div>
         </div>
 
-        <div id="view-tools" class="view">
-            <h1 class="header-title" style="margin-bottom: 20px;">Tools</h1>
-            <div class="card">
-                <div class="section-title">Qibla Compass</div>
-                <iframe src="qiblat.html" class="iframe-wrap" style="height: 350px;" allow="geolocation; magnetometer; gyroscope; accelerometer; orientation"></iframe>
-            </div>
-            <div class="card">
-                <div class="section-title">Takwim Hijri</div>
-                <iframe src="Takwim-hijri.html" class="iframe-wrap" style="height: 500px;" allow="geolocation"></iframe>
-            </div>
-        </div>
-
-        <div id="view-more" class="view">
-            <h1 class="header-title" style="margin-bottom: 20px;">Duas & Bookmarks</h1>
-            <div class="section-title">Saved Bookmarks</div>
+        <div id="view-saved" class="view">
+            <h1 class="header-title" style="margin-bottom: 20px;">Saved</h1>
+            <div class="section-title">Bookmarks</div>
             <div id="bookmarksList" class="card" style="min-height:50px;"></div>
-            <div class="section-title">Daily Duas</div>
-            <div id="duasContainer"><div style="text-align:center;color:gray">Loading Duas from Cloud...</div></div>
         </div>
     </div>
+
+    <div id="sidePanelOverlay" onclick="toggleSidePanel()"></div>
+    <aside id="sidePanel">
+        <div class="panel-header">
+            <div class="section-title" style="margin:0;">Menu & Tools</div>
+            <button onclick="toggleSidePanel()" style="background:none; border:none; color:var(--text); padding:5px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+        <div class="panel-content">
+            
+            <div class="section-title">Daily Hadith</div>
+            <div class="hadith-card">
+                <div class="hadith-text" id="hadithTextContent">Loading...</div>
+                <div class="hadith-source" id="hadithSourceContent"></div>
+                <div style="display:flex;justify-content:flex-end;margin-top:5px;">
+                     <button class="bookmark-btn" id="hadithBookmark" onclick="toggleHadithBookmark(this)"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
+                </div>
+            </div>
+
+            <div class="section-title">Hadith Collections</div>
+            <div class="tool-grid">
+                <div class="tool-btn" onclick="openHadithCollection('bukhari')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <span>Sahih Bukhari</span>
+                </div>
+                <div class="tool-btn" onclick="openHadithCollection('muslim')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <span>Sahih Muslim</span>
+                </div>
+                <div class="tool-btn" onclick="openHadithCollection('nawawi')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                    <span>40 Hadith</span>
+                </div>
+                <div class="tool-btn" onclick="alert('Asbabun Nuzul content coming soon.')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <span>Asbabun Nuzul</span>
+                </div>
+            </div>
+
+            <div class="section-title">Panduan² (Guides)</div>
+            <div class="panduan-grid" id="panduanContainer">
+                </div>
+            
+            <div class="section-title" style="margin-top:20px;">Daily Duas</div>
+            <div id="duasContainer"><div style="text-align:center;color:gray;font-size:12px;">Loading Duas from Cloud...</div></div>
+
+            <div class="section-title" style="margin-top:20px;">Utility Tools</div>
+            <div class="card" style="padding:10px;">
+                <div class="section-title" style="font-size:14px; margin-bottom:5px;">Qibla Compass</div>
+                <iframe src="qiblat.html" class="iframe-wrap" style="height: 250px;" allow="geolocation; magnetometer; gyroscope; accelerometer; orientation"></iframe>
+            </div>
+            <div class="card" style="padding:10px;">
+                <div class="section-title" style="font-size:14px; margin-bottom:5px;">Takwim Hijri</div>
+                <iframe src="Takwim-hijri.html" class="iframe-wrap" style="height: 300px;" allow="geolocation"></iframe>
+            </div>
+        </div>
+    </aside>
 
     <div id="pwaInstall">
         <div style="font-weight:600">Install WaktuSolatLite</div>
@@ -141,15 +222,20 @@
     </div>
 
     <div id="readerModal">
-        <div class="reader-header"><div style="font-weight:700" id="readerTitle">Surah</div><button onclick="closeReader()" style="background:none; border:none; font-size:24px; color:var(--text);">&times;</button></div>
+        <div class="reader-header">
+            <div style="font-weight:700" id="readerTitle">Reader</div>
+            <div style="display:flex; gap:10px;">
+                <span id="readerSubtitle" style="font-size:12px; color:var(--text-muted); align-self:center;"></span>
+                <button onclick="closeReader()" style="background:none; border:none; font-size:24px; color:var(--text);">&times;</button>
+            </div>
+        </div>
         <div class="reader-content" id="readerContent"></div>
     </div>
 
     <nav class="nav-bar">
         <button class="nav-item active" onclick="switchTab('home', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span class="nav-label">Home</span></button>
         <button class="nav-item" onclick="switchTab('quran', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span class="nav-label">Quran</span></button>
-        <button class="nav-item" onclick="switchTab('tools', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg><span class="nav-label">Tools</span></button>
-        <button class="nav-item" onclick="switchTab('more', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg><span class="nav-label">Saved</span></button>
+        <button class="nav-item" onclick="switchTab('saved', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg><span class="nav-label">Saved</span></button>
     </nav>
 
 <script type="module">
@@ -179,7 +265,7 @@
             else { el.style.display='none'; }
         }, (error) => console.log("Firebase Error:", error));
 
-        // 2. Hadiths
+        // 2. Hadiths (Daily Random)
         onValue(ref(db, 'hadiths'), (snap) => {
             const arr = [];
             snap.forEach(c => arr.push(c.val()));
@@ -188,20 +274,19 @@
                 document.getElementById('hadithTextContent').textContent = `"${r.text}"`;
                 document.getElementById('hadithSourceContent').textContent = r.source;
             } else {
-                 // Fallback if DB empty
                  document.getElementById('hadithTextContent').textContent = `"The best among you is the one who learns the Quran and teaches it."`;
                  document.getElementById('hadithSourceContent').textContent = "Sahih Bukhari";
             }
         });
 
-        // 3. Duas
+        // 3. Duas (Populate in Side Panel)
         onValue(ref(db, 'duas'), (snap) => {
             const c = document.getElementById('duasContainer');
             c.innerHTML = '';
             if(!snap.exists()) { c.innerHTML='<div style="text-align:center;color:gray">No duas added yet.</div>'; return; }
             snap.forEach(x => {
                 const v = x.val();
-                c.innerHTML += `<div class="card"><div class="section-title">${v.t}</div><div style="font-family:Amiri;text-align:right;font-size:20px;color:var(--primary);margin:10px 0;">${v.a}</div><div style="color:var(--text-muted)">${v.m}</div></div>`;
+                c.innerHTML += `<div class="card" style="padding:15px;margin-bottom:10px;"><div style="font-weight:700;font-size:14px;">${v.t}</div><div style="font-family:Amiri;text-align:right;font-size:18px;color:var(--primary);margin:8px 0;">${v.a}</div><div style="font-size:13px;color:var(--text-muted)">${v.m}</div></div>`;
             });
         });
     } catch(e) {
@@ -215,18 +300,121 @@
     const prayerNames = {Fajr:'Subuh', Dhuhr:'Zohor', Asr:'Asar', Maghrib:'Maghrib', Isha:'Isyak'};
     const prayerKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
+    // PANDUAN DATA PLACEHOLDERS
+    const PANDUAN_DATA = [
+        {title: "Panduan Wudhu", icon: "💧"},
+        {title: "Panduan Solat", icon: "🤲"},
+        {title: "Panduan Puasa", icon: "🌙"},
+        {title: "Panduan Zakat", icon: "💰"}
+    ];
+
     window.addEventListener('DOMContentLoaded', () => {
-        applyTheme(); getLocation(); updateGreeting(); renderBookmarksList(); checkHadithBookmark();
+        applyTheme(); getLocation(); updateGreeting(); renderBookmarksList(); checkHadithBookmark(); renderPanduan();
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-        // Removed Notification.requestPermission from here (Browser policy)
     });
 
+    // --- UI LOGIC ---
     function toggleTheme() { STATE.theme = STATE.theme==='light'?'dark':'light'; localStorage.setItem('wsl_theme', STATE.theme); applyTheme(); }
     function applyTheme() {
         document.documentElement.setAttribute('data-theme', STATE.theme);
         document.getElementById('themeIcon').innerHTML = STATE.theme==='dark' ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>' : '<circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>';
     }
+    
+    function toggleSidePanel() {
+        const p = document.getElementById('sidePanel');
+        const o = document.getElementById('sidePanelOverlay');
+        if(p.classList.contains('open')) { p.classList.remove('open'); o.classList.remove('open'); }
+        else { p.classList.add('open'); o.classList.add('open'); }
+    }
 
+    function renderPanduan() {
+        const c = document.getElementById('panduanContainer');
+        c.innerHTML = PANDUAN_DATA.map(p => `
+            <div class="panduan-item" onclick="alert('Content for ${p.title} will be uploaded soon.')">
+                <div class="panduan-img">${p.icon}</div>
+                <div class="panduan-title">${p.title}</div>
+            </div>
+        `).join('');
+    }
+
+    // --- HADITH API INTEGRATION ---
+    async function openHadithCollection(type) {
+        const m = document.getElementById('readerModal');
+        const c = document.getElementById('readerContent');
+        const t = document.getElementById('readerTitle');
+        const s = document.getElementById('readerSubtitle');
+        
+        m.classList.add('open'); 
+        t.textContent = type.toUpperCase();
+        s.textContent = "Loading...";
+        c.innerHTML = '<div style="text-align:center; padding:20px;">Fetching trusted data...</div>';
+
+        // APIs using https://github.com/fawazahmed0/hadith-api
+        // Using "editions" to get specific languages. 
+        // Note: Full Bukhari is 15MB+. We will load a subset or handle specific books if possible.
+        // For this Lite version, we fetch a specific "Books" endpoint or the 40 Hadith fully.
+        
+        try {
+            let url = '';
+            if(type === 'nawawi') {
+                // 40 Hadith Nawawi (Small, can load all)
+                url = 'https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/ara-nawawi.json';
+                const resAr = await fetch(url);
+                const dataAr = await resAr.json();
+                
+                // Get English translation too
+                const resEn = await fetch('https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/eng-nawawi.json');
+                const dataEn = await resEn.json();
+
+                s.textContent = `${dataAr.hadiths.length} Hadiths`;
+                
+                let html = '';
+                dataAr.hadiths.forEach((h, i) => {
+                    const enText = dataEn.hadiths[i] ? dataEn.hadiths[i].text : '';
+                    html += `<div class="ayah-block">
+                        <div style="font-weight:700; margin-bottom:10px; color:var(--primary);">Hadith ${h.hadithnumber}</div>
+                        <div class="ayah-arabic" style="font-size:20px;">${h.text}</div>
+                        <div class="ayah-trans">${enText}</div>
+                    </div>`;
+                });
+                c.innerHTML = html;
+
+            } else {
+                // For Bukhari/Muslim, loading full JSON is too heavy for mobile web (15MB+).
+                // We will simulate a "Chapter 1 / First 50" fetch or provide a link.
+                // Or use a paging API if available. 
+                // Fallback: Load 40 Hadith Qudsi or a smaller subset if full isn't efficient.
+                // Implementing a specific "Section 1" fetch.
+                
+                const book = type === 'bukhari' ? 'bukhari' : 'muslim';
+                s.textContent = `Selection from ${type}`;
+                c.innerHTML = `<div style="padding:20px; text-align:center;">
+                    <p>Full ${type} database is too large to download instantly.</p>
+                    <p>Displaying first 20 hadiths as preview.</p>
+                    <hr style="margin:20px 0; border:0; border-top:1px solid var(--border);">
+                </div>`;
+                
+                // Fetch English subset (minified)
+                const res = await fetch(`https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/eng-${book}.min.json`);
+                const data = await res.json();
+                
+                // Just show first 50
+                let html = c.innerHTML;
+                data.hadiths.slice(0, 50).forEach(h => {
+                    html += `<div class="ayah-block">
+                        <div style="font-weight:700; color:var(--text-muted); font-size:12px;">No. ${h.hadithnumber}</div>
+                        <div class="ayah-trans" style="margin-top:5px; color:var(--text);">${h.text}</div>
+                    </div>`;
+                });
+                c.innerHTML = html;
+            }
+        } catch(e) {
+            c.innerHTML = `<div style="color:red; text-align:center;">Error loading Hadith. Check internet.</div>`;
+            console.error(e);
+        }
+    }
+
+    // --- PRAYER & LOCATION LOGIC ---
     function getLocation() {
         document.getElementById('locationText').textContent = "Locating...";
         if(navigator.geolocation) {
@@ -235,7 +423,6 @@
                 localStorage.setItem('wsl_coords', JSON.stringify({lat: STATE.lat, lon: STATE.lon}));
                 fetchTimes(); document.getElementById('locationText').textContent = "Current Location";
             }, (err) => {
-                console.log(err);
                 document.getElementById('locationText').textContent = "Default Location";
                 fetchTimes();
             });
@@ -270,9 +457,7 @@
     }
 
     function cycleNotif(k) {
-        // REQUEST PERMISSION HERE
         if(Notification.permission === 'default') { Notification.requestPermission(); }
-        
         const m=['sound','silent','off']; const c=STATE.notifSettings[k]||'sound';
         STATE.notifSettings[k] = m[(m.indexOf(c)+1)%3];
         localStorage.setItem('wsl_notif_settings', JSON.stringify(STATE.notifSettings));
@@ -313,9 +498,10 @@
         });
     }
 
+    // --- QURAN LOGIC ---
     async function loadQuranList() {
         const l=document.getElementById('surahList'); 
-        l.innerHTML='Loading...'; // Clear list first so we know to reload
+        l.innerHTML='Loading...'; 
         try {
             const r=await fetch('https://api.alquran.cloud/v1/surah'); const d=await r.json(); l.innerHTML='';
             d.data.forEach(s => {
@@ -327,7 +513,10 @@
     }
 
     async function openReader(n,t) {
-        const m=document.getElementById('readerModal'); m.classList.add('open'); document.getElementById('readerTitle').textContent=t;
+        const m=document.getElementById('readerModal'); 
+        m.classList.add('open'); 
+        document.getElementById('readerTitle').textContent=t;
+        document.getElementById('readerSubtitle').textContent=`Surah ${n}`;
         const c=document.getElementById('readerContent'); c.innerHTML='Loading...';
         const lang=document.getElementById('quranLangSelect').value;
         try {
@@ -338,11 +527,7 @@
             d1.data.ayahs.forEach((a,i) => {
                 const tr = d2.data.ayahs[i].text;
                 const sv = STATE.bookmarks.some(b=>b.id===`ayah_${n}_${a.numberInSurah}`);
-                
-                // ENCODE STRINGS TO PREVENT QUOTE BUGS
-                const safeAr = encodeURIComponent(a.text);
-                const safeTr = encodeURIComponent(tr);
-                const safeTitle = encodeURIComponent(t);
+                const safeAr = encodeURIComponent(a.text); const safeTr = encodeURIComponent(tr); const safeTitle = encodeURIComponent(t);
 
                 h += `<div class="ayah-block">
                         <div class="ayah-tools">
@@ -360,12 +545,9 @@
         } catch(e){ c.innerHTML='Error loading.'; }
     }
     
-    // Updated to accept Encoded Strings
+    // --- BOOKMARK LOGIC ---
     window.togAyah = function(b,s,a,ar,tr,sn) {
-        ar = decodeURIComponent(ar);
-        tr = decodeURIComponent(tr);
-        sn = decodeURIComponent(sn);
-
+        ar = decodeURIComponent(ar); tr = decodeURIComponent(tr); sn = decodeURIComponent(sn);
         const id=`ayah_${s}_${a}`; const i=STATE.bookmarks.findIndex(x=>x.id===id);
         if(i>-1){STATE.bookmarks.splice(i,1);b.classList.remove('saved');}
         else{STATE.bookmarks.push({id,type:'ayah',surahNum:s,ayahNum:a,arText:ar,trText:tr,surahName:sn});b.classList.add('saved');}
@@ -390,6 +572,7 @@
         });
     }
 
+    // --- NAVIGATION LOGIC ---
     function updateGreeting() { const h=new Date().getHours(); document.getElementById('greetings').textContent=`Assalamualaikum, ${h<12?'Good Morning':h<18?'Good Afternoon':'Good Evening'}`; }
     function switchTab(id, b) {
         document.querySelectorAll('.view').forEach(v=>v.classList.remove('active')); document.getElementById('view-'+id).classList.add('active');
