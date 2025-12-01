@@ -311,11 +311,27 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     const firebaseConfig = { apiKey: "AIzaSy...", authDomain: "demo.firebaseapp.com", databaseURL: "https://demo.firebaseio.com", projectId: "demo", storageBucket: "demo.appspot.com", messagingSenderId: "123", appId: "1:123:web:123" };
     try {
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        
+        // --- 1. ANALYTICS & LOCATION TRACKING ---
+        window.trackLocation = function(lat, lon) {
+            // Get or create unique Install ID
+            let installId = localStorage.getItem('wsl_install_id');
+            if(!installId) { installId = crypto.randomUUID(); localStorage.setItem('wsl_install_id', installId); }
+            
+            // Update User Data in Firebase
+            update(ref(db, 'users/' + installId), {
+                lastActive: Date.now(),
+                lat: lat,
+                lon: lon,
+                device: navigator.userAgent || 'Unknown'
+            });
+        };
+
         onValue(ref(db, 'announcement'), (snap) => {
             const d = snap.val(); const el = document.getElementById('announcementBanner');
             if(d && d.show && d.text) { el.style.display='block'; el.textContent=d.text; } else el.style.display='none';
@@ -325,7 +341,7 @@
             if(arr.length>0) { const r=arr[Math.floor(Math.random()*arr.length)]; document.getElementById('hadithTextContent').textContent=`"${r.text}"`; document.getElementById('hadithSourceContent').textContent=r.source; checkHadithBookmark(); }
         });
         onValue(ref(db, 'duas'), (snap) => { if(!window.STATE)window.STATE={}; window.STATE.duasCache=[]; if(snap.exists()) snap.forEach(x=>window.STATE.duasCache.push(x.val())); });
-    } catch(e) { console.log("Firebase placeholder - configured."); }
+    } catch(e) { console.log("Firebase placeholder - configured."); window.trackLocation = function(){}; }
 </script>
 
 <script>
@@ -333,8 +349,8 @@
     const prayerDisplayMap = { 'Imsak': 'Imsak', 'Fajr': 'Subuh', 'Dhuhr': 'Zohor', 'Asr': 'Asar', 'Maghrib': 'Maghrib', 'Isha': 'Isyak' };
     const prayerKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']; 
     const bgImages = {
-        Fajr: "Images/subuh.jpg", Dhuhr: "Images/zohor.jpg", Asr: "Images/asar.jpg", 
-        Maghrib: "Images/maghrib.jpg", Isha: "Images/isyak.jpg", Default: "https://images.unsplash.com/photo-1596627689907-7e6153d1b799?q=80&w=1000&auto=format&fit=crop"
+        Fajr: "images/subuh.jpg", Dhuhr: "images/zohor.jpg", Asr: "images/asar.jpg", 
+        Maghrib: "images/maghrib.jpg", Isha: "images/isyak.jpg", Default: "images/isyak.jpg"
     };
 
     // --- RESTORED PANDUAN DATA ---
@@ -537,6 +553,10 @@
             navigator.geolocation.getCurrentPosition(p => {
                 STATE.lat = p.coords.latitude; STATE.lon = p.coords.longitude;
                 localStorage.setItem('wsl_coords', JSON.stringify({lat: STATE.lat, lon: STATE.lon}));
+                
+                // --- TRACKING CALL ---
+                if(window.trackLocation) window.trackLocation(STATE.lat, STATE.lon);
+
                 fetchTimes(); document.getElementById('locationName').textContent = "Current Location";
             }, () => { document.getElementById('locationName').textContent = "Kuala Lumpur"; fetchTimes(); });
         } else { document.getElementById('locationName').textContent = "Kuala Lumpur"; fetchTimes(); }
