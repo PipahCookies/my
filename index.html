@@ -6,6 +6,10 @@
     <meta name="theme-color" content="#A67734">
     <title>WaktuSolatLite</title>
     <link rel="manifest" href="manifest.json">
+    <!-- IOS Support -->
+    <link rel="apple-touch-icon" href="icon-192.png"> 
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root[data-theme="light"] { --primary:#A67734; --primary-light:#FDF8F0; --bg:#F8F9FA; --surface:#FFFFFF; --text:#1F2937; --text-muted:#6B7280; --border:#E5E7EB; --shadow:0 10px 30px -10px rgba(0,0,0,0.1); --overlay:rgba(0,0,0,0.4); }
@@ -105,7 +109,7 @@
         /* Panduan Grid */
         .panduan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
 
-        /* Modals (Reader & Content) */
+        /* Modals */
         #readerModal { position: fixed; inset: 0; background: var(--bg); z-index: 400; transform: translateY(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
         #readerModal.open { transform: translateY(0); }
         .reader-header { padding: 15px 20px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
@@ -119,15 +123,7 @@
         .content-guide-item { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
         .content-guide-title { font-weight: 700; margin-bottom: 5px; color: var(--primary); }
         
-        .iframe-wrap { 
-            width: 100%; 
-            border: none; 
-            border-radius: 12px; 
-            background: white; 
-            margin-top: 10px; 
-            display: block; 
-            overflow: hidden; 
-        }
+        .iframe-wrap { width: 100%; border: none; border-radius: 12px; background: white; margin-top: 10px; display: block; overflow: hidden; }
 
         /* Navigation */
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: calc(65px + env(safe-area-inset-bottom)); background: var(--surface); display: grid; grid-template-columns: repeat(3, 1fr); box-shadow: 0 -5px 20px rgba(0,0,0,0.05); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--border); z-index: 100; }
@@ -135,10 +131,51 @@
         .nav-item.active { color: var(--primary); }
         .nav-label { font-size: 10px; font-weight: 600; }
         
-        #pwaInstall { display: none; position: fixed; bottom: 90px; left: 20px; right: 20px; background: var(--text); color: var(--bg); padding: 15px; border-radius: 12px; z-index: 90; align-items: center; justify-content: space-between; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+        /* --- NEW TOP PWA INSTALL MODAL --- */
+        #pwaModal {
+            position: fixed;
+            top: -200px; /* Start hidden above screen */
+            left: 20px;
+            right: 20px;
+            background: var(--surface);
+            color: var(--text);
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            border: 1px solid var(--primary);
+            transition: top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy effect */
+        }
+        #pwaModal.show {
+            top: 20px; /* Drop down to visible area */
+        }
+        .pwa-info { display: flex; flex-direction: column; }
+        .pwa-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+        .pwa-desc { font-size: 11px; color: var(--text-muted); }
+        .pwa-actions { display: flex; gap: 8px; }
+        .pwa-btn { border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; }
+        .pwa-install { background: var(--primary); color: white; }
+        .pwa-close { background: transparent; color: var(--text-muted); }
+
     </style>
 </head>
 <body>
+
+    <!-- PWA INSTALL MODAL (TOP) -->
+    <div id="pwaModal">
+        <div class="pwa-info">
+            <div class="pwa-title">Install WaktuSolatLite</div>
+            <div class="pwa-desc">Get faster access & offline mode</div>
+        </div>
+        <div class="pwa-actions">
+            <button class="pwa-btn pwa-close" onclick="closePwaModal()">Later</button>
+            <button class="pwa-btn pwa-install" onclick="installPwa()">Install</button>
+        </div>
+    </div>
 
     <div id="app-container">
         <div id="view-home" class="view active">
@@ -223,7 +260,8 @@
 
             <div class="section-title">Panduan² (Guides)</div>
             <div class="tool-grid" id="panduanContainer">
-                </div>
+                <!-- Populated by JS -->
+            </div>
             
             <div class="section-title">Daily Duas</div>
             <div class="tool-grid">
@@ -236,6 +274,7 @@
             <div class="section-title" style="margin-top:20px;">Utility Tools</div>
             <div class="card" style="padding:10px;">
                 <div class="section-title" style="font-size:14px; margin-bottom:5px;">Qibla Compass</div>
+                <!-- Points to local file -->
                 <iframe src="qiblat.html" class="iframe-wrap" style="height: 300px;" allow="geolocation; magnetometer; gyroscope; accelerometer; orientation" scrolling="no"></iframe>
             </div>
             <div class="card" style="padding:10px;">
@@ -244,11 +283,6 @@
             </div>
         </div>
     </aside>
-
-    <div id="pwaInstall">
-        <div style="font-weight:600">Install WaktuSolatLite</div>
-        <button onclick="installPWA()" style="background:var(--bg); color:var(--text); border:none; padding:8px 16px; border-radius:8px; font-weight:700;">Install</button>
-    </div>
 
     <div id="readerModal">
         <div class="reader-header">
@@ -288,7 +322,6 @@
 
         if(!window.STATE) window.STATE = { duasCache: [] };
 
-        // 1. Announcements
         onValue(ref(db, 'announcement'), (snap) => {
             const d = snap.val();
             const el = document.getElementById('announcementBanner');
@@ -298,7 +331,6 @@
             }
         }, (error) => console.log("Firebase Announcement Error:", error));
 
-        // 2. Hadiths (Daily Random)
         onValue(ref(db, 'hadiths'), (snap) => {
             const arr = [];
             snap.forEach(c => arr.push(c.val()));
@@ -314,7 +346,6 @@
             }
         });
 
-        // 3. Duas
         onValue(ref(db, 'duas'), (snap) => {
             window.STATE.duasCache = [];
             if(snap.exists()) {
@@ -328,8 +359,8 @@
 </script>
 
 <script>
-    // --- TIMER FIX: Global Interval Variable ---
     let timerInterval = null; 
+    let deferredPrompt; // For PWA Install
 
     const STATE = { lat: 3.1390, lon: 101.6869, prayerTimes: null, theme: localStorage.getItem('wsl_theme')||'light', notifSettings: JSON.parse(localStorage.getItem('wsl_notif_settings')||'{}'), notified: {}, bookmarks: JSON.parse(localStorage.getItem('wsl_bookmarks')||'[]'), duasCache: [], quranListCache: null };
     const prayerNames = {Fajr:'Subuh', Dhuhr:'Zohor', Asr:'Asar', Maghrib:'Maghrib', Isha:'Isyak'};
@@ -352,6 +383,32 @@
                 .catch(err => console.log('SW Error:', err));
         }
     });
+
+    // --- PWA INSTALLATION LOGIC (Top Slide) ---
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent default browser banner
+        e.preventDefault();
+        deferredPrompt = e;
+        // Show our top custom modal
+        setTimeout(() => {
+            document.getElementById('pwaModal').classList.add('show');
+        }, 2000); // Slight delay for effect
+    });
+
+    window.installPwa = async function() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            console.log('User accepted install');
+        }
+        deferredPrompt = null;
+        closePwaModal();
+    }
+
+    window.closePwaModal = function() {
+        document.getElementById('pwaModal').classList.remove('show');
+    }
 
     // --- UI LOGIC ---
     function toggleTheme() { STATE.theme = STATE.theme==='light'?'dark':'light'; localStorage.setItem('wsl_theme', STATE.theme); applyTheme(); }
@@ -648,8 +705,7 @@
         if(id==='quran') loadQuranList();
     }
     window.closeReader = function(){ document.getElementById('readerModal').classList.remove('open'); }
-    let dp; window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;document.getElementById('pwaInstall').style.display='flex'});
-    window.installPWA = function(){if(dp)dp.prompt();}
 </script>
 </body>
 </html>
+
