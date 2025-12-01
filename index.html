@@ -79,7 +79,8 @@
         
         /* Tools in Side Panel */
         .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .tool-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 15px; text-align: center; cursor: pointer; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .tool-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 15px; text-align: center; cursor: pointer; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform 0.1s; }
+        .tool-btn:active { transform: scale(0.98); background: var(--bg); }
         .tool-btn span { font-size: 12px; font-weight: 700; }
         .tool-btn svg { color: var(--primary); }
 
@@ -87,10 +88,8 @@
         .hadith-text { font-style: italic; font-size: 14px; line-height: 1.5; color: var(--text); margin-bottom: 8px; }
         .hadith-source { font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; }
 
-        .panduan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .panduan-item { background: var(--surface); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; }
-        .panduan-img { width: 100%; height: 80px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 24px; }
-        .panduan-title { padding: 10px; font-size: 12px; font-weight: 600; text-align: center; }
+        /* Panduan Grid uses similar style to tool-grid */
+        .panduan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
 
         /* Modals (Reader & Content) */
         #readerModal { position: fixed; inset: 0; background: var(--bg); z-index: 400; transform: translateY(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
@@ -103,6 +102,9 @@
         .ayah-arabic { font-family: 'Amiri', serif; font-size: 26px; line-height: 2.2; text-align: right; color: var(--text); margin-bottom: 10px; }
         .ayah-trans { font-size: 14px; line-height: 1.6; color: var(--text-muted); }
 
+        .content-guide-item { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
+        .content-guide-title { font-weight: 700; margin-bottom: 5px; color: var(--primary); }
+        
         .iframe-wrap { width: 100%; border: none; border-radius: 12px; background: white; margin-top: 10px; }
 
         /* Navigation */
@@ -191,18 +193,23 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                     <span>40 Hadith</span>
                 </div>
-                <div class="tool-btn" onclick="alert('Asbabun Nuzul content coming soon.')">
+                <div class="tool-btn" onclick="openHadithCollection('asbabun')">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     <span>Asbabun Nuzul</span>
                 </div>
             </div>
 
             <div class="section-title">Panduan² (Guides)</div>
-            <div class="panduan-grid" id="panduanContainer">
+            <div class="tool-grid" id="panduanContainer">
                 </div>
             
-            <div class="section-title" style="margin-top:20px;">Daily Duas</div>
-            <div id="duasContainer"><div style="text-align:center;color:gray;font-size:12px;">Loading Duas from Cloud...</div></div>
+            <div class="section-title">Daily Duas</div>
+            <div class="tool-grid">
+                <div class="tool-btn" onclick="openDuas()" style="grid-column: span 2; flex-direction: row; justify-content: center; gap: 15px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                    <span>Open Himpunan Doa</span>
+                </div>
+            </div>
 
             <div class="section-title" style="margin-top:20px;">Utility Tools</div>
             <div class="card" style="padding:10px;">
@@ -279,33 +286,31 @@
             }
         });
 
-        // 3. Duas (Populate in Side Panel)
+        // 3. Duas (Populate internal Cache instead of direct DOM)
         onValue(ref(db, 'duas'), (snap) => {
-            const c = document.getElementById('duasContainer');
-            c.innerHTML = '';
-            if(!snap.exists()) { c.innerHTML='<div style="text-align:center;color:gray">No duas added yet.</div>'; return; }
-            snap.forEach(x => {
-                const v = x.val();
-                c.innerHTML += `<div class="card" style="padding:15px;margin-bottom:10px;"><div style="font-weight:700;font-size:14px;">${v.t}</div><div style="font-family:Amiri;text-align:right;font-size:18px;color:var(--primary);margin:8px 0;">${v.a}</div><div style="font-size:13px;color:var(--text-muted)">${v.m}</div></div>`;
-            });
+            if(!window.STATE) window.STATE = {};
+            window.STATE.duasCache = [];
+            if(snap.exists()) {
+                snap.forEach(x => window.STATE.duasCache.push(x.val()));
+            }
         });
+
     } catch(e) {
         console.error("Firebase failed to init (Check Config):", e);
-        document.getElementById('duasContainer').innerHTML = "Setup Required";
     }
 </script>
 
 <script>
-    const STATE = { lat: 3.1390, lon: 101.6869, prayerTimes: null, theme: localStorage.getItem('wsl_theme')||'light', notifSettings: JSON.parse(localStorage.getItem('wsl_notif_settings')||'{}'), notified: {}, bookmarks: JSON.parse(localStorage.getItem('wsl_bookmarks')||'[]') };
+    const STATE = { lat: 3.1390, lon: 101.6869, prayerTimes: null, theme: localStorage.getItem('wsl_theme')||'light', notifSettings: JSON.parse(localStorage.getItem('wsl_notif_settings')||'{}'), notified: {}, bookmarks: JSON.parse(localStorage.getItem('wsl_bookmarks')||'[]'), duasCache: [] };
     const prayerNames = {Fajr:'Subuh', Dhuhr:'Zohor', Asr:'Asar', Maghrib:'Maghrib', Isha:'Isyak'};
     const prayerKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
     // PANDUAN DATA PLACEHOLDERS
     const PANDUAN_DATA = [
-        {title: "Panduan Wudhu", icon: "💧"},
-        {title: "Panduan Solat", icon: "🤲"},
-        {title: "Panduan Puasa", icon: "🌙"},
-        {title: "Panduan Zakat", icon: "💰"}
+        {title: "Panduan Wudhu", id:"wudhu", icon: "💧"},
+        {title: "Panduan Solat", id:"solat", icon: "🤲"},
+        {title: "Panduan Puasa", id:"puasa", icon: "🌙"},
+        {title: "Panduan Zakat", id:"zakat", icon: "💰"}
     ];
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -327,42 +332,96 @@
         else { p.classList.add('open'); o.classList.add('open'); }
     }
 
+    // --- RENDER SIDEBAR BUTTONS ---
     function renderPanduan() {
         const c = document.getElementById('panduanContainer');
+        // Render as Tool Buttons in a Grid
         c.innerHTML = PANDUAN_DATA.map(p => `
-            <div class="panduan-item" onclick="alert('Content for ${p.title} will be uploaded soon.')">
-                <div class="panduan-img">${p.icon}</div>
-                <div class="panduan-title">${p.title}</div>
+            <div class="tool-btn" onclick="openPanduan('${p.id}', '${p.title}')">
+                <div style="font-size:24px;">${p.icon}</div>
+                <span>${p.title}</span>
             </div>
         `).join('');
     }
 
-    // --- HADITH API INTEGRATION ---
-    async function openHadithCollection(type) {
+    // --- MODAL CONTENT FUNCTIONS ---
+    
+    // 1. DUAS
+    window.openDuas = function() {
+        const m = document.getElementById('readerModal');
+        const c = document.getElementById('readerContent');
+        m.classList.add('open');
+        document.getElementById('readerTitle').textContent = "Himpunan Doa";
+        document.getElementById('readerSubtitle').textContent = "Daily Duas";
+        
+        c.innerHTML = '';
+        if(!STATE.duasCache || STATE.duasCache.length === 0) {
+            c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">Loading or no duas available...</div>';
+            return;
+        }
+
+        STATE.duasCache.forEach(v => {
+            c.innerHTML += `<div class="card" style="padding:15px;margin-bottom:10px;"><div style="font-weight:700;font-size:16px;">${v.t}</div><div style="font-family:Amiri;text-align:right;font-size:20px;color:var(--primary);margin:10px 0;">${v.a}</div><div style="font-size:14px;color:var(--text-muted);line-height:1.5">${v.m}</div></div>`;
+        });
+    }
+
+    // 2. PANDUAN (GUIDES)
+    window.openPanduan = function(id, title) {
+        const m = document.getElementById('readerModal');
+        const c = document.getElementById('readerContent');
+        m.classList.add('open');
+        document.getElementById('readerTitle').textContent = title;
+        document.getElementById('readerSubtitle').textContent = "Islamic Guide";
+        
+        let html = '';
+        if(id === 'wudhu') {
+             html = `
+                <div class="content-guide-item"><div class="content-guide-title">1. Niat</div><p>Berniat di dalam hati untuk mengambil air wudhu.</p></div>
+                <div class="content-guide-item"><div class="content-guide-title">2. Membasuh Muka</div><p>Basuh muka rata-rata 3 kali.</p></div>
+                <div class="content-guide-item"><div class="content-guide-title">3. Membasuh Tangan</div><p>Basuh tangan hingga ke siku (kanan kemudian kiri) 3 kali.</p></div>
+                <div class="content-guide-item"><div class="content-guide-title">4. Menyapu Kepala</div><p>Sapu sedikit bahagian kepala dengan air.</p></div>
+                <div class="content-guide-item"><div class="content-guide-title">5. Membasuh Kaki</div><p>Basuh kaki hingga ke buku lali (kanan kemudian kiri) 3 kali.</p></div>
+                <div class="content-guide-item"><div class="content-guide-title">6. Tertib</div><p>Lakukan mengikut urutan.</p></div>
+             `;
+        } else if (id === 'solat') {
+             html = `<div style="text-align:center; padding:20px;">Detailed Solat Guide coming soon...</div>`;
+        } else {
+             html = `<div style="text-align:center; padding:20px;">Content for ${title} is being updated.</div>`;
+        }
+        c.innerHTML = html;
+    }
+
+    // 3. HADITH COLLECTIONS
+    window.openHadithCollection = async function(type) {
         const m = document.getElementById('readerModal');
         const c = document.getElementById('readerContent');
         const t = document.getElementById('readerTitle');
         const s = document.getElementById('readerSubtitle');
         
         m.classList.add('open'); 
-        t.textContent = type.toUpperCase();
+        t.textContent = type.replace('asbabun', 'Asbabun Nuzul').toUpperCase();
         s.textContent = "Loading...";
         c.innerHTML = '<div style="text-align:center; padding:20px;">Fetching trusted data...</div>';
 
-        // APIs using https://github.com/fawazahmed0/hadith-api
-        // Using "editions" to get specific languages. 
-        // Note: Full Bukhari is 15MB+. We will load a subset or handle specific books if possible.
-        // For this Lite version, we fetch a specific "Books" endpoint or the 40 Hadith fully.
-        
+        if(type === 'asbabun') {
+            s.textContent = "Context of Revelation";
+            c.innerHTML = `
+                <div class="card" style="padding:20px; text-align:center;">
+                    <h3>Asbabun Nuzul</h3>
+                    <p>Database connection required.</p>
+                    <p style="color:var(--text-muted)">This feature will display the historical context for specific Quranic verses.</p>
+                </div>
+            `;
+            return;
+        }
+
         try {
             let url = '';
             if(type === 'nawawi') {
-                // 40 Hadith Nawawi (Small, can load all)
                 url = 'https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/ara-nawawi.json';
                 const resAr = await fetch(url);
                 const dataAr = await resAr.json();
                 
-                // Get English translation too
                 const resEn = await fetch('https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/eng-nawawi.json');
                 const dataEn = await resEn.json();
 
@@ -380,12 +439,6 @@
                 c.innerHTML = html;
 
             } else {
-                // For Bukhari/Muslim, loading full JSON is too heavy for mobile web (15MB+).
-                // We will simulate a "Chapter 1 / First 50" fetch or provide a link.
-                // Or use a paging API if available. 
-                // Fallback: Load 40 Hadith Qudsi or a smaller subset if full isn't efficient.
-                // Implementing a specific "Section 1" fetch.
-                
                 const book = type === 'bukhari' ? 'bukhari' : 'muslim';
                 s.textContent = `Selection from ${type}`;
                 c.innerHTML = `<div style="padding:20px; text-align:center;">
@@ -394,11 +447,9 @@
                     <hr style="margin:20px 0; border:0; border-top:1px solid var(--border);">
                 </div>`;
                 
-                // Fetch English subset (minified)
                 const res = await fetch(`https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/eng-${book}.min.json`);
                 const data = await res.json();
                 
-                // Just show first 50
                 let html = c.innerHTML;
                 data.hadiths.slice(0, 50).forEach(h => {
                     html += `<div class="ayah-block">
