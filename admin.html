@@ -1,76 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaktuSolatLite Controller</title>
+    <style>
+        body { font-family: -apple-system, system-ui, sans-serif; background: #f4f4f5; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h1 { color: #A67734; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h2 { margin-top: 30px; font-size: 18px; color: #555; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+        button { background: #A67734; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        button:hover { background: #8a6026; }
+        button.danger { background: #dc2626; margin-left: 10px; }
+        .list-item { background: #f9fafb; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .success-msg { color: green; display: none; margin-top: 10px; font-weight: bold; }
+        .status-indicator { font-size: 12px; color: #666; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>App Controller</h1>
+    <div class="status-indicator" id="connectionStatus">Connecting to Firebase...</div>
+
+    <h2>📢 Homepage Announcement</h2>
+    <div class="form-group">
+        <label>Banner Text (Leave empty to hide)</label>
+        <input type="text" id="announcementInput" placeholder="e.g. Selamat Hari Raya!">
+    </div>
+    <button id="btnSaveAnn">Update Banner</button>
+
+    <h2>📚 Hadith Collection</h2>
+    <div class="form-group">
+        <label>Hadith Text</label>
+        <textarea id="hadithText" rows="3" placeholder="Enter Hadith text..."></textarea>
+    </div>
+    <div class="form-group">
+        <label>Source</label>
+        <input type="text" id="hadithSource" placeholder="e.g. Riwayat Muslim">
+    </div>
+    <button id="btnAddHadith">Add Hadith</button>
+    <div id="hadithList" style="margin-top: 20px;">Loading list...</div>
+
+    <h2>🤲 Add New Dua</h2>
+    <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="duaTitle" placeholder="Title">
+    </div>
+    <div class="form-group">
+        <label>Arabic</label>
+        <input type="text" id="duaArabic" placeholder="Arabic text..." dir="rtl">
+    </div>
+    <div class="form-group">
+        <label>Translation</label>
+        <input type="text" id="duaTrans" placeholder="Meaning...">
+    </div>
+    <button id="btnAddDua">Add Dua</button>
+    <div id="duaList" style="margin-top: 20px;"></div>
+
+    <div id="msg" class="success-msg">Action Successful!</div>
+</div>
+
 <script type="module">
-  // Import Firebase
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getDatabase, ref, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-  // PASTE YOUR CONFIG HERE
+  // --- CONFIGURATION START ---
+  // 1. Go to Firebase Console > Project Settings > General > Your Apps
+  // 2. Copy the "const firebaseConfig = { ... }" block
+  // 3. Paste it below replacing the placeholder:
+  
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "123...",
-    appId: "1:..."
+    // PASTE YOUR FIREBASE CONFIG HERE
+    apiKey: "AIzaSy...",
+    authDomain: "your-app.firebaseapp.com",
+    databaseURL: "https://your-app.firebaseio.com",
+    projectId: "your-app",
+    storageBucket: "your-app.appspot.com",
+    messagingSenderId: "123456",
+    appId: "1:123456:web:abcdef"
   };
+  // --- CONFIGURATION END ---
 
-  // Initialize
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // --- 1. Announcement Logic ---
-  window.saveAnnouncement = function() {
+  document.getElementById('connectionStatus').textContent = "Connected to Database ✅";
+
+  // 1. ANNOUNCEMENT
+  // Load current
+  onValue(ref(db, 'announcement'), (snap) => {
+      const val = snap.val();
+      if(val && val.text) document.getElementById('announcementInput').value = val.text;
+  });
+
+  document.getElementById('btnSaveAnn').addEventListener('click', () => {
       const text = document.getElementById('announcementInput').value;
-      // Save to Firebase at path '/announcement'
       set(ref(db, 'announcement'), {
           text: text,
-          show: !!text // true if text exists
-      }).then(() => showMsg());
-  };
+          show: !!text
+      }).then(showMsg).catch(alert);
+  });
 
-  // --- 2. Hadith Logic ---
-  window.addHadith = function() {
+  // 2. HADITH
+  document.getElementById('btnAddHadith').addEventListener('click', () => {
       const text = document.getElementById('hadithText').value;
       const source = document.getElementById('hadithSource').value;
-      
-      // Push new item to '/hadiths' list
-      const newRef = push(ref(db, 'hadiths'));
-      set(newRef, { text, source }).then(() => {
-          document.getElementById('hadithText').value = '';
-          document.getElementById('hadithSource').value = '';
-          showMsg();
-      });
-  };
+      if(!text) return;
+      push(ref(db, 'hadiths'), { text, source })
+        .then(() => {
+            document.getElementById('hadithText').value = '';
+            document.getElementById('hadithSource').value = '';
+            showMsg();
+        });
+  });
 
-  // Listen for changes to display list in Admin
   onValue(ref(db, 'hadiths'), (snapshot) => {
       const list = document.getElementById('hadithList');
+      list.innerHTML = '';
+      if(!snapshot.exists()) { list.innerHTML = '<small>No hadiths found.</small>'; return; }
+      
+      snapshot.forEach((child) => {
+          const key = child.key;
+          const val = child.val();
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.innerHTML = `
+            <div><strong>${val.source}:</strong> ${val.text.substring(0,30)}...</div>
+            <button class="danger" data-key="${key}">Delete</button>
+          `;
+          div.querySelector('button').onclick = () => remove(ref(db, `hadiths/${key}`));
+          list.appendChild(div);
+      });
+  });
+
+  // 3. DUAS
+  document.getElementById('btnAddDua').addEventListener('click', () => {
+      const t = document.getElementById('duaTitle').value;
+      const a = document.getElementById('duaArabic').value;
+      const m = document.getElementById('duaTrans').value;
+      if(!t) return;
+      push(ref(db, 'duas'), { t, a, m }).then(showMsg);
+  });
+  
+  // Optional: List Duas to delete them
+  onValue(ref(db, 'duas'), (snapshot) => {
+      const list = document.getElementById('duaList');
       list.innerHTML = '';
       snapshot.forEach((child) => {
           const key = child.key;
           const val = child.val();
-          list.innerHTML += `
-            <div class="list-item">
-                <div><strong>${val.source}:</strong> ${val.text.substring(0,30)}...</div>
-                <button class="danger" onclick="deleteItem('hadiths/${key}')">Delete</button>
-            </div>`;
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.innerHTML = `
+            <div><strong>${val.t}</strong></div>
+            <button class="danger" data-key="${key}">Delete</button>
+          `;
+          div.querySelector('button').onclick = () => remove(ref(db, `duas/${key}`));
+          list.appendChild(div);
       });
   });
-
-  // --- 3. Dua Logic ---
-  window.addDua = function() {
-      const t = document.getElementById('duaTitle').value;
-      const a = document.getElementById('duaArabic').value;
-      const m = document.getElementById('duaTrans').value;
-      
-      const newRef = push(ref(db, 'duas'));
-      set(newRef, { t, a, m }).then(() => showMsg());
-  };
-
-  // --- Helpers ---
-  window.deleteItem = function(path) {
-      remove(ref(db, path));
-  }
 
   function showMsg() {
       const msg = document.getElementById('msg');
@@ -78,3 +170,5 @@
       setTimeout(() => msg.style.display = 'none', 2000);
   }
 </script>
+</body>
+</html>
