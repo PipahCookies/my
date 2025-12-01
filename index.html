@@ -58,7 +58,8 @@
         .hero {
             position: absolute; inset: 0; background-color: var(--primary);
             background-size: cover; background-position: center; transition: background-image 1s ease-in-out;
-            display: flex; align-items: center; justify-content: center; /* CENTERED */
+            /* CENTER ALIGNMENT */
+            display: flex; align-items: center; justify-content: center; 
             padding: 80px 20px;
         }
         .hero::before {
@@ -374,7 +375,22 @@
 </script>
 
 <script>
-    const STATE = { lat: 3.1390, lon: 101.6869, prayerTimes: null, theme: localStorage.getItem('wsl_theme')||'light', notifSettings: JSON.parse(localStorage.getItem('wsl_notif_settings')||'{}'), notified: {}, bookmarks: JSON.parse(localStorage.getItem('wsl_bookmarks')||'[]'), duasCache: [] };
+    // 1. INSTANT LOAD: Read saved data immediately
+    const savedCoords = JSON.parse(localStorage.getItem('wsl_coords'));
+    const INITIAL_LAT = savedCoords ? savedCoords.lat : 3.1390;
+    const INITIAL_LON = savedCoords ? savedCoords.lon : 101.6869;
+
+    const STATE = { 
+        lat: INITIAL_LAT, 
+        lon: INITIAL_LON, 
+        prayerTimes: JSON.parse(localStorage.getItem('wsl_cached_times') || 'null'), 
+        theme: localStorage.getItem('wsl_theme')||'light', 
+        notifSettings: JSON.parse(localStorage.getItem('wsl_notif_settings')||'{}'), 
+        notified: {}, 
+        bookmarks: JSON.parse(localStorage.getItem('wsl_bookmarks')||'[]'), 
+        duasCache: [] 
+    };
+
     const prayerDisplayMap = { 'Imsak': 'Imsak', 'Fajr': 'Subuh', 'Dhuhr': 'Zohor', 'Asr': 'Asar', 'Maghrib': 'Maghrib', 'Isha': 'Isyak' };
     const prayerKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']; 
     const bgImages = {
@@ -389,7 +405,26 @@
     ];
 
     window.addEventListener('DOMContentLoaded', () => {
-        applyTheme(); getLocation(); updateGreeting(); renderBookmarksList(); renderPanduan();
+        applyTheme();
+        updateGreeting();
+        renderBookmarksList();
+        renderPanduan();
+        
+        // 2. RENDER IMMEDIATELY: Don't wait for GPS
+        if(STATE.prayerTimes) {
+            renderPrayerList();
+            renderHeroPrayers(STATE.prayerTimes);
+            updateHero(STATE.prayerTimes);
+            document.getElementById('locationName').textContent = savedCoords ? "Last Known Location" : "Kuala Lumpur (Default)";
+        } else {
+            // Very first run: Show fallback immediately while loading
+            document.getElementById('locationName').textContent = "Locating...";
+            fetchTimes(); // Fetch using the default (KL) coordinates immediately
+        }
+
+        // 3. START BACKGROUND TASKS
+        getLocation(); 
+
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
         
         window.addEventListener('scroll', () => {
@@ -397,11 +432,8 @@
             if (window.scrollY > 30) header.classList.add('scrolled'); else header.classList.remove('scrolled');
         });
 
-        // Fallback checks for iframes
         document.querySelectorAll('iframe').forEach(frame => {
             try {
-                // We can't actually check internal status due to CORS if external, 
-                // but we can catch basic load errors on some browsers.
                 frame.addEventListener('error', () => {
                     frame.style.display = 'none';
                     frame.nextElementSibling.style.display = 'flex';
@@ -410,6 +442,7 @@
         });
     });
 
+    // --- HELPER FUNCTIONS ---
     function renderPanduan() {
         const c = document.getElementById('panduanContainer');
         c.innerHTML = PANDUAN_DATA.map(p => `
@@ -493,7 +526,6 @@
         } catch(e) { c.innerHTML = `<div style="color:red; text-align:center;">Error loading Hadith.</div>`; }
     };
 
-    // --- BOOKMARK LOGIC ---
     window.togAyah = function(b,s,a,ar,tr,sn) {
         ar = decodeURIComponent(ar); tr = decodeURIComponent(tr); sn = decodeURIComponent(sn);
         const id=`ayah_${s}_${a}`; const i=STATE.bookmarks.findIndex(x=>x.id===id);
@@ -520,7 +552,75 @@
         });
     }
 
-    // --- TIME & HERO LOGIC ---
+    // --- UPDATED LOCATION & FETCH LOGIC ---
+    function getLocation() {
+        const onSuccess = (p) => {
+            STATE.lat = p.coords.latitude; 
+            STATE.lon = p.coords.longitude;
+            localStorage.setItem('wsl_coords', JSON.stringify({lat: STATE.lat, lon: STATE.lon}));
+            document.getElementById('locationName').textContent = "Current Location";
+            syncLocationToFirebase(STATE.lat, STATE.lon);
+            fetchTimes(); 
+        };
+
+        const onError = () => {
+            if(!savedCoords) document.getElementById('locationName').textContent = "Kuala Lumpur (Default)";
+            syncLocationToFirebase(null, null);
+        };
+
+        if(navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(onSuccess, onError, {timeout: 10000}); 
+        } else { onError(); }
+    }
+
+    function syncLocationToFirebase(lat, lon) {
+        const device = navigator.userAgent || 'Unknown';
+        let attempts = 0;
+        const interval = setInterval(() => {
+            if(window.updateUserLocation) {
+                window.updateUserLocation(lat, lon, device);
+                clearInterval(interval);
+            }
+            attempts++;
+            if(attempts > 20) clearInterval(interval);
+        }, 500);
+    }
+
+    async function fetchTimes() {
+        try {
+            const res = await fetch(`https://api.aladhan.com/v1/timings/${Math.floor(Date.now()/1000)}?latitude=${STATE.lat}&longitude=${STATE.lon}&method=11`);
+            const d = await res.json();
+            STATE.prayerTimes = d.data.timings;
+            // SAVE CACHE
+            localStorage.setItem('wsl_cached_times', JSON.stringify(STATE.prayerTimes));
+            
+            document.getElementById('hijriDate').textContent = `${d.data.date.hijri.day} ${d.data.date.hijri.month.en} ${d.data.date.hijri.year}`;
+            renderPrayerList(); 
+            renderHeroPrayers(STATE.prayerTimes); 
+            updateHero(STATE.prayerTimes);
+        } catch(e) { console.error(e); }
+    }
+
+    function renderPrayerList() {
+        const l = document.getElementById('prayerList'); l.innerHTML = '';
+        prayerKeys.forEach(k => {
+            const s = STATE.notifSettings[k]||'sound';
+            l.innerHTML += `<div class="prayer-row"><div class="prayer-info"><span>${prayerDisplayMap[k]}</span><span class="prayer-time">${convertTo12Hour(STATE.prayerTimes[k])}</span></div><button class="bell-btn ${s}" onclick="cycleNotif('${k}')">${getBellIcon(s)}</button></div>`;
+        });
+    }
+    function getBellIcon(m) {
+        if(m==='sound') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`;
+        if(m==='silent') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+        return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+    }
+    function cycleNotif(k) {
+        if(Notification.permission === 'default') Notification.requestPermission();
+        const m=['sound','silent','off']; const c=STATE.notifSettings[k]||'sound';
+        STATE.notifSettings[k] = m[(m.indexOf(c)+1)%3];
+        localStorage.setItem('wsl_notif_settings', JSON.stringify(STATE.notifSettings)); renderPrayerList();
+    }
+    function convertTo12Hour(t) { let [h,m]=t.split(':'); h=parseInt(h); const am=h>=12?'PM':'AM'; h=h%12||12; return `${h}:${m} ${am}`; }
+
     function renderHeroPrayers(timings) {
         const order = ['Imsak','Fajr','Dhuhr','Asr','Maghrib','Isha'];
         const namesDiv = document.getElementById('prayerNames'); const timesDiv = document.getElementById('prayerTimes');
@@ -566,7 +666,6 @@
         hero.style.backgroundImage = `url('${currentBg}')`;
     }
 
-    // --- STANDARD APP LOGIC ---
     function toggleTheme() { STATE.theme = STATE.theme==='light'?'dark':'light'; localStorage.setItem('wsl_theme', STATE.theme); applyTheme(); }
     function applyTheme() {
         document.documentElement.setAttribute('data-theme', STATE.theme);
@@ -577,84 +676,7 @@
         if(p.classList.contains('open')) { p.classList.remove('open'); o.classList.remove('open'); }
         else { p.classList.add('open'); o.classList.add('open'); }
     }
-    
-    // --- LOCATION & FIREBASE SYNC (FIXED) ---
-    function getLocation() {
-        document.getElementById('locationName').textContent = "Locating...";
-        
-        // 1. Success callback (User allows GPS)
-        const onSuccess = (p) => {
-            STATE.lat = p.coords.latitude; STATE.lon = p.coords.longitude;
-            localStorage.setItem('wsl_coords', JSON.stringify({lat: STATE.lat, lon: STATE.lon}));
-            document.getElementById('locationName').textContent = "Current Location";
-            syncLocationToFirebase(STATE.lat, STATE.lon);
-            fetchTimes();
-        };
 
-        // 2. Error callback (User denies GPS) - Still track "Active" status, just no lat/lon
-        const onError = () => {
-            document.getElementById('locationName').textContent = "Kuala Lumpur (Default)";
-            // Try to load last known
-            const last = localStorage.getItem('wsl_coords');
-            if(last) {
-                const p = JSON.parse(last);
-                STATE.lat = p.lat; STATE.lon = p.lon;
-            }
-            syncLocationToFirebase(null, null); // Send heartbeat without location
-            fetchTimes();
-        };
-
-        if(navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(onSuccess, onError);
-        } else { onError(); }
-    }
-
-    // Wait for module to load before sending data
-    function syncLocationToFirebase(lat, lon) {
-        const device = navigator.userAgent || 'Unknown';
-        
-        // Retry logic: Module script might load after this script
-        let attempts = 0;
-        const interval = setInterval(() => {
-            if(window.updateUserLocation) {
-                window.updateUserLocation(lat, lon, device);
-                clearInterval(interval);
-            }
-            attempts++;
-            if(attempts > 20) clearInterval(interval); // Stop after 10s
-        }, 500);
-    }
-
-    async function fetchTimes() {
-        try {
-            const res = await fetch(`https://api.aladhan.com/v1/timings/${Math.floor(Date.now()/1000)}?latitude=${STATE.lat}&longitude=${STATE.lon}&method=11`);
-            const d = await res.json();
-            STATE.prayerTimes = d.data.timings;
-            document.getElementById('hijriDate').textContent = `${d.data.date.hijri.day} ${d.data.date.hijri.month.en} ${d.data.date.hijri.year}`;
-            renderPrayerList(); renderHeroPrayers(STATE.prayerTimes); updateHero(STATE.prayerTimes);
-        } catch(e) { console.error(e); }
-    }
-    function renderPrayerList() {
-        const l = document.getElementById('prayerList'); l.innerHTML = '';
-        prayerKeys.forEach(k => {
-            const s = STATE.notifSettings[k]||'sound';
-            l.innerHTML += `<div class="prayer-row"><div class="prayer-info"><span>${prayerDisplayMap[k]}</span><span class="prayer-time">${convertTo12Hour(STATE.prayerTimes[k])}</span></div><button class="bell-btn ${s}" onclick="cycleNotif('${k}')">${getBellIcon(s)}</button></div>`;
-        });
-    }
-    function getBellIcon(m) {
-        if(m==='sound') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`;
-        if(m==='silent') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
-        return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
-    }
-    function cycleNotif(k) {
-        if(Notification.permission === 'default') Notification.requestPermission();
-        const m=['sound','silent','off']; const c=STATE.notifSettings[k]||'sound';
-        STATE.notifSettings[k] = m[(m.indexOf(c)+1)%3];
-        localStorage.setItem('wsl_notif_settings', JSON.stringify(STATE.notifSettings)); renderPrayerList();
-    }
-    function convertTo12Hour(t) { let [h,m]=t.split(':'); h=parseInt(h); const am=h>=12?'PM':'AM'; h=h%12||12; return `${h}:${m} ${am}`; }
-
-    // --- QURAN & OTHERS ---
     async function loadQuranList() {
         const l=document.getElementById('surahList'); l.innerHTML='Loading...'; 
         try {
@@ -686,7 +708,6 @@
             c.innerHTML=h;
         } catch(e){ c.innerHTML='Error loading.'; }
     }
-
     function updateGreeting() { const h=new Date().getHours(); document.getElementById('greetings').textContent=`Assalamualaikum, ${h<12?'Good Morning':h<18?'Good Afternoon':'Good Evening'}`; }
     function switchTab(id, b) {
         document.querySelectorAll('.view').forEach(v=>v.classList.remove('active')); document.getElementById('view-'+id).classList.add('active');
