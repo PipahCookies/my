@@ -58,8 +58,8 @@
         .hero {
             position: absolute; inset: 0; background-color: var(--primary);
             background-size: cover; background-position: center; transition: background-image 1s ease-in-out;
-            display: flex; align-items: flex-end; justify-content: center;
-            padding: 80px 20px 25px 20px; 
+            display: flex; align-items: center; justify-content: center; /* CENTERED */
+            padding: 80px 20px;
         }
         .hero::before {
             content: ''; position: absolute; inset: 0;
@@ -310,10 +310,10 @@
         <button onclick="installPWA()" style="background:var(--bg); color:var(--text); border:none; padding:8px 16px; border-radius:8px; font-weight:700;">Install</button>
     </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<script>
     const firebaseConfig = {
       apiKey: "AIzaSyBQMVNRDYsKHRj_-bwKbFICyN6XseL3CDI",
       authDomain: "waktusolatlite.firebaseapp.com",
@@ -324,8 +324,8 @@
     };
 
     try {
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
         
         // Expose helper to window for main script
         window.updateUserLocation = function(lat, lon, device) {
@@ -334,7 +334,7 @@
                 installId = crypto.randomUUID(); 
                 localStorage.setItem('wsl_install_id', installId); 
             }
-            update(ref(db, 'users/' + installId), {
+            db.ref('users/' + installId).update({
                 lastActive: Date.now(),
                 lat: lat,
                 lon: lon,
@@ -345,14 +345,14 @@
         // Initialize user tracking immediately if possible, or wait for trigger
         window.firebaseReady = true;
 
-        onValue(ref(db, 'announcement'), (snap) => {
+        db.ref('announcement').on('value', (snap) => {
             const d = snap.val(); 
             const el = document.getElementById('announcementBanner');
             if(d && d.show && d.text) { el.style.display='block'; el.textContent=d.text; } 
             else el.style.display='none';
         });
 
-        onValue(ref(db, 'hadiths'), (snap) => {
+        db.ref('hadiths').on('value', (snap) => {
             const arr=[]; snap.forEach(c=>arr.push(c.val()));
             if(arr.length>0) { 
                 const r=arr[Math.floor(Math.random()*arr.length)]; 
@@ -362,7 +362,7 @@
             }
         });
 
-        onValue(ref(db, 'duas'), (snap) => { 
+        db.ref('duas').on('value', (snap) => { 
             if(!window.STATE) window.STATE={}; 
             window.STATE.duasCache=[]; 
             if(snap.exists()) snap.forEach(x=>window.STATE.duasCache.push(x.val())); 
