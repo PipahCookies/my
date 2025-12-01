@@ -11,9 +11,11 @@
         :root[data-theme="light"] { --primary:#A67734; --primary-light:#FDF8F0; --bg:#F8F9FA; --surface:#FFFFFF; --text:#1F2937; --text-muted:#6B7280; --border:#E5E7EB; --shadow:0 10px 30px -10px rgba(0,0,0,0.1); }
         :root[data-theme="dark"] { --primary:#D4AF37; --primary-light:#2A2012; --bg:#121212; --surface:#1E1E1E; --text:#F3F4F6; --text-muted:#9CA3AF; --border:#374151; --shadow:0 10px 30px -10px rgba(0,0,0,0.5); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; transition: background 0.3s, color 0.3s; }
         
-        #app-container { flex: 1; overflow-y: auto; padding-bottom: 90px; position: relative; scroll-behavior: smooth; padding: 20px; }
+        /* Fixed Safe Area for iPhones */
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; transition: background 0.3s, color 0.3s; padding-top: env(safe-area-inset-top); }
+        
+        #app-container { flex: 1; overflow-y: auto; padding-bottom: 110px; position: relative; scroll-behavior: smooth; padding: 20px; }
         .view { display: none; animation: fadeIn 0.3s ease; }
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -53,16 +55,16 @@
         .surah-num { background: var(--primary-light); color: var(--primary); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 700; margin-right: 15px; }
         .surah-arabic { font-family: 'Amiri', serif; font-size: 20px; color: var(--primary); margin-left: auto; }
         
-        #readerModal { position: fixed; inset: 0; background: var(--bg); z-index: 200; transform: translateY(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; }
+        #readerModal { position: fixed; inset: 0; background: var(--bg); z-index: 200; transform: translateY(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
         #readerModal.open { transform: translateY(0); }
         .reader-header { padding: 15px 20px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-        .reader-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .reader-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 50px; }
         .ayah-block { margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px dashed var(--border); position: relative; }
         .ayah-tools { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .ayah-arabic { font-family: 'Amiri', serif; font-size: 28px; line-height: 2.2; text-align: right; color: var(--text); margin-bottom: 10px; }
         .ayah-trans { font-size: 15px; line-height: 1.6; color: var(--text-muted); }
         
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--surface); display: grid; grid-template-columns: repeat(4, 1fr); box-shadow: 0 -5px 20px rgba(0,0,0,0.05); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--border); z-index: 100; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: calc(70px + env(safe-area-inset-bottom)); background: var(--surface); display: grid; grid-template-columns: repeat(4, 1fr); box-shadow: 0 -5px 20px rgba(0,0,0,0.05); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--border); z-index: 100; }
         .nav-item { border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-muted); cursor: pointer; }
         .nav-item.active { color: var(--primary); }
         .nav-label { font-size: 10px; font-weight: 600; }
@@ -137,10 +139,12 @@
         <div style="font-weight:600">Install WaktuSolatLite</div>
         <button onclick="installPWA()" style="background:var(--bg); color:var(--text); border:none; padding:8px 16px; border-radius:8px; font-weight:700;">Install</button>
     </div>
+
     <div id="readerModal">
         <div class="reader-header"><div style="font-weight:700" id="readerTitle">Surah</div><button onclick="closeReader()" style="background:none; border:none; font-size:24px; color:var(--text);">&times;</button></div>
         <div class="reader-content" id="readerContent"></div>
     </div>
+
     <nav class="nav-bar">
         <button class="nav-item active" onclick="switchTab('home', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span class="nav-label">Home</span></button>
         <button class="nav-item" onclick="switchTab('quran', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span class="nav-label">Quran</span></button>
@@ -152,8 +156,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // --- CONFIGURATION START ---
-    // PASTE THE SAME CONFIG HERE AS YOU DID IN ADMIN.HTML
+    // --- PASTE YOUR REAL FIREBASE CONFIG HERE ---
     const firebaseConfig = {
       apiKey: "AIzaSy...",
       authDomain: "your-app.firebaseapp.com",
@@ -163,48 +166,51 @@
       messagingSenderId: "123456",
       appId: "1:123456:web:abcdef"
     };
-    // --- CONFIGURATION END ---
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    try {
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    // 1. Announcements
-    onValue(ref(db, 'announcement'), (snap) => {
-        const d = snap.val();
-        const el = document.getElementById('announcementBanner');
-        if(d && d.show && d.text) { el.style.display='block'; el.textContent=d.text; }
-        else { el.style.display='none'; }
-    });
+        // 1. Announcements
+        onValue(ref(db, 'announcement'), (snap) => {
+            const d = snap.val();
+            const el = document.getElementById('announcementBanner');
+            if(d && d.show && d.text) { el.style.display='block'; el.textContent=d.text; }
+            else { el.style.display='none'; }
+        }, (error) => console.log("Firebase Error:", error));
 
-    // 2. Hadiths
-    onValue(ref(db, 'hadiths'), (snap) => {
-        const arr = [];
-        snap.forEach(c => arr.push(c.val()));
-        if(arr.length > 0) {
-            const r = arr[Math.floor(Math.random() * arr.length)];
-            document.getElementById('hadithTextContent').textContent = `"${r.text}"`;
-            document.getElementById('hadithSourceContent').textContent = r.source;
-        } else {
-             // Fallback
-             document.getElementById('hadithTextContent').textContent = `"The best among you is the one who learns the Quran and teaches it."`;
-             document.getElementById('hadithSourceContent').textContent = "Sahih Bukhari";
-        }
-    });
-
-    // 3. Duas
-    onValue(ref(db, 'duas'), (snap) => {
-        const c = document.getElementById('duasContainer');
-        c.innerHTML = '';
-        if(!snap.exists()) { c.innerHTML='<div style="text-align:center;color:gray">No duas added yet.</div>'; return; }
-        snap.forEach(x => {
-            const v = x.val();
-            c.innerHTML += `<div class="card"><div class="section-title">${v.t}</div><div style="font-family:Amiri;text-align:right;font-size:20px;color:var(--primary);margin:10px 0;">${v.a}</div><div style="color:var(--text-muted)">${v.m}</div></div>`;
+        // 2. Hadiths
+        onValue(ref(db, 'hadiths'), (snap) => {
+            const arr = [];
+            snap.forEach(c => arr.push(c.val()));
+            if(arr.length > 0) {
+                const r = arr[Math.floor(Math.random() * arr.length)];
+                document.getElementById('hadithTextContent').textContent = `"${r.text}"`;
+                document.getElementById('hadithSourceContent').textContent = r.source;
+            } else {
+                 // Fallback if DB empty
+                 document.getElementById('hadithTextContent').textContent = `"The best among you is the one who learns the Quran and teaches it."`;
+                 document.getElementById('hadithSourceContent').textContent = "Sahih Bukhari";
+            }
         });
-    });
+
+        // 3. Duas
+        onValue(ref(db, 'duas'), (snap) => {
+            const c = document.getElementById('duasContainer');
+            c.innerHTML = '';
+            if(!snap.exists()) { c.innerHTML='<div style="text-align:center;color:gray">No duas added yet.</div>'; return; }
+            snap.forEach(x => {
+                const v = x.val();
+                c.innerHTML += `<div class="card"><div class="section-title">${v.t}</div><div style="font-family:Amiri;text-align:right;font-size:20px;color:var(--primary);margin:10px 0;">${v.a}</div><div style="color:var(--text-muted)">${v.m}</div></div>`;
+            });
+        });
+    } catch(e) {
+        console.error("Firebase failed to init (Check Config):", e);
+        document.getElementById('duasContainer').innerHTML = "Setup Required";
+    }
 </script>
 
 <script>
-    // --- EXISTING APP LOGIC ---
     const STATE = { lat: 3.1390, lon: 101.6869, prayerTimes: null, theme: localStorage.getItem('wsl_theme')||'light', notifSettings: JSON.parse(localStorage.getItem('wsl_notif_settings')||'{}'), notified: {}, bookmarks: JSON.parse(localStorage.getItem('wsl_bookmarks')||'[]') };
     const prayerNames = {Fajr:'Subuh', Dhuhr:'Zohor', Asr:'Asar', Maghrib:'Maghrib', Isha:'Isyak'};
     const prayerKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
@@ -212,7 +218,7 @@
     window.addEventListener('DOMContentLoaded', () => {
         applyTheme(); getLocation(); updateGreeting(); renderBookmarksList(); checkHadithBookmark();
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-        if (window.Notification) Notification.requestPermission();
+        // Removed Notification.requestPermission from here (Browser policy)
     });
 
     function toggleTheme() { STATE.theme = STATE.theme==='light'?'dark':'light'; localStorage.setItem('wsl_theme', STATE.theme); applyTheme(); }
@@ -222,13 +228,21 @@
     }
 
     function getLocation() {
+        document.getElementById('locationText').textContent = "Locating...";
         if(navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(p => {
                 STATE.lat = p.coords.latitude; STATE.lon = p.coords.longitude;
                 localStorage.setItem('wsl_coords', JSON.stringify({lat: STATE.lat, lon: STATE.lon}));
                 fetchTimes(); document.getElementById('locationText').textContent = "Current Location";
-            }, () => fetchTimes());
-        } else fetchTimes();
+            }, (err) => {
+                console.log(err);
+                document.getElementById('locationText').textContent = "Default Location";
+                fetchTimes();
+            });
+        } else {
+            document.getElementById('locationText').textContent = "Default Location";
+            fetchTimes();
+        }
     }
 
     async function fetchTimes() {
@@ -256,6 +270,9 @@
     }
 
     function cycleNotif(k) {
+        // REQUEST PERMISSION HERE
+        if(Notification.permission === 'default') { Notification.requestPermission(); }
+        
         const m=['sound','silent','off']; const c=STATE.notifSettings[k]||'sound';
         STATE.notifSettings[k] = m[(m.indexOf(c)+1)%3];
         localStorage.setItem('wsl_notif_settings', JSON.stringify(STATE.notifSettings));
@@ -297,13 +314,16 @@
     }
 
     async function loadQuranList() {
-        const l=document.getElementById('surahList'); if(l.children.length>0)return; l.innerHTML='Loading...';
+        const l=document.getElementById('surahList'); 
+        l.innerHTML='Loading...'; // Clear list first so we know to reload
         try {
             const r=await fetch('https://api.alquran.cloud/v1/surah'); const d=await r.json(); l.innerHTML='';
             d.data.forEach(s => {
                 l.innerHTML += `<div class="surah-item" onclick="openReader(${s.number},'${s.englishName}')"><div class="surah-num">${s.number}</div><div style="flex:1"><div style="font-weight:700">${s.englishName}</div><div style="font-size:12px;color:var(--text-muted)">${s.englishNameTranslation}</div></div><div class="surah-arabic">${s.name}</div></div>`;
             });
-        } catch(e){}
+        } catch(e){
+            l.innerHTML = 'Error loading list.';
+        }
     }
 
     async function openReader(n,t) {
@@ -314,16 +334,38 @@
             const [r1,r2]=await Promise.all([fetch(`https://api.alquran.cloud/v1/surah/${n}`), fetch(`https://api.alquran.cloud/v1/surah/${n}/${lang}`)]);
             const d1=await r1.json(); const d2=await r2.json();
             let h = (n!==1&&n!==9) ? `<div style="text-align:center;font-family:Amiri;font-size:24px;margin-bottom:20px;">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>` : '';
+            
             d1.data.ayahs.forEach((a,i) => {
                 const tr = d2.data.ayahs[i].text;
                 const sv = STATE.bookmarks.some(b=>b.id===`ayah_${n}_${a.numberInSurah}`);
-                h += `<div class="ayah-block"><div class="ayah-tools"><span style="font-size:12px;color:var(--text-muted)">${n}:${a.numberInSurah}</span><button class="bookmark-btn ${sv?'saved':''}" onclick="togAyah(this,${n},${a.numberInSurah},'${a.text.replace(/'/g,"")}','${tr.replace(/'/g,"")}','${t}')"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button></div><div class="ayah-arabic">${a.text}</div><div class="ayah-trans">${tr}</div></div>`;
+                
+                // ENCODE STRINGS TO PREVENT QUOTE BUGS
+                const safeAr = encodeURIComponent(a.text);
+                const safeTr = encodeURIComponent(tr);
+                const safeTitle = encodeURIComponent(t);
+
+                h += `<div class="ayah-block">
+                        <div class="ayah-tools">
+                            <span style="font-size:12px;color:var(--text-muted)">${n}:${a.numberInSurah}</span>
+                            <button class="bookmark-btn ${sv?'saved':''}" 
+                                onclick="togAyah(this,${n},${a.numberInSurah},'${safeAr}','${safeTr}','${safeTitle}')">
+                                <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="ayah-arabic">${a.text}</div>
+                        <div class="ayah-trans">${tr}</div>
+                      </div>`;
             });
             c.innerHTML=h;
         } catch(e){ c.innerHTML='Error loading.'; }
     }
     
+    // Updated to accept Encoded Strings
     window.togAyah = function(b,s,a,ar,tr,sn) {
+        ar = decodeURIComponent(ar);
+        tr = decodeURIComponent(tr);
+        sn = decodeURIComponent(sn);
+
         const id=`ayah_${s}_${a}`; const i=STATE.bookmarks.findIndex(x=>x.id===id);
         if(i>-1){STATE.bookmarks.splice(i,1);b.classList.remove('saved');}
         else{STATE.bookmarks.push({id,type:'ayah',surahNum:s,ayahNum:a,arText:ar,trText:tr,surahName:sn});b.classList.add('saved');}
