@@ -12,7 +12,6 @@
         :root[data-theme="dark"] { --primary:#D4AF37; --primary-light:#2A2012; --bg:#121212; --surface:#1E1E1E; --text:#F3F4F6; --text-muted:#9CA3AF; --border:#374151; --shadow:0 10px 30px -10px rgba(0,0,0,0.5); --overlay:rgba(0,0,0,0.8); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* Updated Body to allow native scrolling (enables Pull-to-Refresh) */
         html { min-height: 100%; }
         body { 
             margin: 0; padding: 0; 
@@ -20,15 +19,13 @@
             background: var(--bg); 
             color: var(--text); 
             min-height: 100vh; 
-            /* overflow-y: auto; Default behavior restored */
             transition: background 0.3s, color 0.3s; 
             padding-top: env(safe-area-inset-top);
         }
         
-        /* Removed fixed height/overflow constraints */
         #app-container { 
             padding: 20px; 
-            padding-bottom: 110px; /* Space for nav bar */
+            padding-bottom: 110px; 
             min-height: 100vh;
         }
 
@@ -77,7 +74,7 @@
         .surah-num { background: var(--primary-light); color: var(--primary); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 700; margin-right: 15px; }
         .surah-arabic { font-family: 'Amiri', serif; font-size: 20px; color: var(--primary); margin-left: auto; }
 
-        /* Side Panel (Modern Drawer) */
+        /* Side Panel */
         #sidePanelOverlay { position: fixed; inset: 0; background: var(--overlay); z-index: 290; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         #sidePanelOverlay.open { opacity: 1; pointer-events: auto; }
         
@@ -105,7 +102,7 @@
         .hadith-text { font-style: italic; font-size: 14px; line-height: 1.5; color: var(--text); margin-bottom: 8px; }
         .hadith-source { font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; }
 
-        /* Panduan Grid uses similar style to tool-grid */
+        /* Panduan Grid */
         .panduan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
 
         /* Modals (Reader & Content) */
@@ -129,7 +126,7 @@
             background: white; 
             margin-top: 10px; 
             display: block; 
-            overflow: hidden; /* Hide scrollbars */
+            overflow: hidden; 
         }
 
         /* Navigation */
@@ -226,8 +223,7 @@
 
             <div class="section-title">Panduan² (Guides)</div>
             <div class="tool-grid" id="panduanContainer">
-                <!-- Populated by JS -->
-            </div>
+                </div>
             
             <div class="section-title">Daily Duas</div>
             <div class="tool-grid">
@@ -275,46 +271,51 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // --- PASTE YOUR REAL FIREBASE CONFIG HERE ---
+    // --- PASTE YOUR REAL FIREBASE KEYS HERE ---
     const firebaseConfig = {
-      apiKey: "AIzaSy...",
-      authDomain: "your-app.firebaseapp.com",
-      databaseURL: "https://your-app.firebaseio.com",
-      projectId: "your-app",
-      storageBucket: "your-app.appspot.com",
-      messagingSenderId: "123456",
-      appId: "1:123456:web:abcdef"
+      apiKey: "PASTE_YOUR_API_KEY_HERE",
+      authDomain: "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://PASTE_YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "PASTE_YOUR_PROJECT_ID",
+      storageBucket: "PASTE_YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "PASTE_YOUR_SENDER_ID",
+      appId: "PASTE_YOUR_APP_ID"
     };
 
     try {
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        if(!window.STATE) window.STATE = { duasCache: [] };
+
         // 1. Announcements
         onValue(ref(db, 'announcement'), (snap) => {
             const d = snap.val();
             const el = document.getElementById('announcementBanner');
-            if(d && d.show && d.text) { el.style.display='block'; el.textContent=d.text; }
-            else { el.style.display='none'; }
-        }, (error) => console.log("Firebase Error:", error));
+            if(el) {
+                if(d && d.show && d.text) { el.style.display='block'; el.textContent=d.text; }
+                else { el.style.display='none'; }
+            }
+        }, (error) => console.log("Firebase Announcement Error:", error));
 
         // 2. Hadiths (Daily Random)
         onValue(ref(db, 'hadiths'), (snap) => {
             const arr = [];
             snap.forEach(c => arr.push(c.val()));
+            const tEl = document.getElementById('hadithTextContent');
+            const sEl = document.getElementById('hadithSourceContent');
             if(arr.length > 0) {
                 const r = arr[Math.floor(Math.random() * arr.length)];
-                document.getElementById('hadithTextContent').textContent = `"${r.text}"`;
-                document.getElementById('hadithSourceContent').textContent = r.source;
+                if(tEl) tEl.textContent = `"${r.text}"`;
+                if(sEl) sEl.textContent = r.source;
             } else {
-                 document.getElementById('hadithTextContent').textContent = `"The best among you is the one who learns the Quran and teaches it."`;
-                 document.getElementById('hadithSourceContent').textContent = "Sahih Bukhari";
+                 if(tEl) tEl.textContent = `"The best among you is the one who learns the Quran and teaches it."`;
+                 if(sEl) sEl.textContent = "Sahih Bukhari";
             }
         });
 
-        // 3. Duas (Populate internal Cache instead of direct DOM)
+        // 3. Duas
         onValue(ref(db, 'duas'), (snap) => {
-            if(!window.STATE) window.STATE = {};
             window.STATE.duasCache = [];
             if(snap.exists()) {
                 snap.forEach(x => window.STATE.duasCache.push(x.val()));
@@ -322,16 +323,18 @@
         });
 
     } catch(e) {
-        console.error("Firebase failed to init (Check Config):", e);
+        console.error("Firebase failed to init:", e);
     }
 </script>
 
 <script>
-    const STATE = { lat: 3.1390, lon: 101.6869, prayerTimes: null, theme: localStorage.getItem('wsl_theme')||'light', notifSettings: JSON.parse(localStorage.getItem('wsl_notif_settings')||'{}'), notified: {}, bookmarks: JSON.parse(localStorage.getItem('wsl_bookmarks')||'[]'), duasCache: [] };
+    // --- TIMER FIX: Global Interval Variable ---
+    let timerInterval = null; 
+
+    const STATE = { lat: 3.1390, lon: 101.6869, prayerTimes: null, theme: localStorage.getItem('wsl_theme')||'light', notifSettings: JSON.parse(localStorage.getItem('wsl_notif_settings')||'{}'), notified: {}, bookmarks: JSON.parse(localStorage.getItem('wsl_bookmarks')||'[]'), duasCache: [], quranListCache: null };
     const prayerNames = {Fajr:'Subuh', Dhuhr:'Zohor', Asr:'Asar', Maghrib:'Maghrib', Isha:'Isyak'};
     const prayerKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
-    // PANDUAN DATA PLACEHOLDERS
     const PANDUAN_DATA = [
         {title: "Panduan Wudhu", id:"wudhu", icon: "💧"},
         {title: "Panduan Solat", id:"solat", icon: "🤲"},
@@ -341,7 +344,13 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         applyTheme(); getLocation(); updateGreeting(); renderBookmarksList(); checkHadithBookmark(); renderPanduan();
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+        
+        // --- SW REGISTRATION ---
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW Registered'))
+                .catch(err => console.log('SW Error:', err));
+        }
     });
 
     // --- UI LOGIC ---
@@ -358,10 +367,9 @@
         else { p.classList.add('open'); o.classList.add('open'); }
     }
 
-    // --- RENDER SIDEBAR BUTTONS ---
+    // --- RENDER SIDEBAR ---
     function renderPanduan() {
         const c = document.getElementById('panduanContainer');
-        // Render as Tool Buttons in a Grid
         c.innerHTML = PANDUAN_DATA.map(p => `
             <div class="tool-btn" onclick="openPanduan('${p.id}', '${p.title}')">
                 <div style="font-size:24px;">${p.icon}</div>
@@ -370,9 +378,7 @@
         `).join('');
     }
 
-    // --- MODAL CONTENT FUNCTIONS ---
-    
-    // 1. DUAS
+    // --- MODALS ---
     window.openDuas = function() {
         const m = document.getElementById('readerModal');
         const c = document.getElementById('readerContent');
@@ -385,13 +391,11 @@
             c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">Loading or no duas available...</div>';
             return;
         }
-
         STATE.duasCache.forEach(v => {
             c.innerHTML += `<div class="card" style="padding:15px;margin-bottom:10px;"><div style="font-weight:700;font-size:16px;">${v.t}</div><div style="font-family:Amiri;text-align:right;font-size:20px;color:var(--primary);margin:10px 0;">${v.a}</div><div style="font-size:14px;color:var(--text-muted);line-height:1.5">${v.m}</div></div>`;
         });
     }
 
-    // 2. PANDUAN (GUIDES)
     window.openPanduan = function(id, title) {
         const m = document.getElementById('readerModal');
         const c = document.getElementById('readerContent');
@@ -409,15 +413,12 @@
                 <div class="content-guide-item"><div class="content-guide-title">5. Membasuh Kaki</div><p>Basuh kaki hingga ke buku lali (kanan kemudian kiri) 3 kali.</p></div>
                 <div class="content-guide-item"><div class="content-guide-title">6. Tertib</div><p>Lakukan mengikut urutan.</p></div>
              `;
-        } else if (id === 'solat') {
-             html = `<div style="text-align:center; padding:20px;">Detailed Solat Guide coming soon...</div>`;
         } else {
              html = `<div style="text-align:center; padding:20px;">Content for ${title} is being updated.</div>`;
         }
         c.innerHTML = html;
     }
 
-    // 3. HADITH COLLECTIONS
     window.openHadithCollection = async function(type) {
         const m = document.getElementById('readerModal');
         const c = document.getElementById('readerContent');
@@ -431,67 +432,40 @@
 
         if(type === 'asbabun') {
             s.textContent = "Context of Revelation";
-            c.innerHTML = `
-                <div class="card" style="padding:20px; text-align:center;">
-                    <h3>Asbabun Nuzul</h3>
-                    <p>Database connection required.</p>
-                    <p style="color:var(--text-muted)">This feature will display the historical context for specific Quranic verses.</p>
-                </div>
-            `;
+            c.innerHTML = `<div class="card" style="padding:20px; text-align:center;"><h3>Asbabun Nuzul</h3><p>Database connection required.</p></div>`;
             return;
         }
 
         try {
-            let url = '';
             if(type === 'nawawi') {
-                url = 'https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/ara-nawawi.json';
-                const resAr = await fetch(url);
+                const resAr = await fetch('https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/ara-nawawi.json');
                 const dataAr = await resAr.json();
-                
                 const resEn = await fetch('https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/eng-nawawi.json');
                 const dataEn = await resEn.json();
-
                 s.textContent = `${dataAr.hadiths.length} Hadiths`;
-                
                 let html = '';
                 dataAr.hadiths.forEach((h, i) => {
                     const enText = dataEn.hadiths[i] ? dataEn.hadiths[i].text : '';
-                    html += `<div class="ayah-block">
-                        <div style="font-weight:700; margin-bottom:10px; color:var(--primary);">Hadith ${h.hadithnumber}</div>
-                        <div class="ayah-arabic" style="font-size:20px;">${h.text}</div>
-                        <div class="ayah-trans">${enText}</div>
-                    </div>`;
+                    html += `<div class="ayah-block"><div style="font-weight:700; margin-bottom:10px; color:var(--primary);">Hadith ${h.hadithnumber}</div><div class="ayah-arabic" style="font-size:20px;">${h.text}</div><div class="ayah-trans">${enText}</div></div>`;
                 });
                 c.innerHTML = html;
-
             } else {
                 const book = type === 'bukhari' ? 'bukhari' : 'muslim';
                 s.textContent = `Selection from ${type}`;
-                c.innerHTML = `<div style="padding:20px; text-align:center;">
-                    <p>Full ${type} database is too large to download instantly.</p>
-                    <p>Displaying first 20 hadiths as preview.</p>
-                    <hr style="margin:20px 0; border:0; border-top:1px solid var(--border);">
-                </div>`;
-                
                 const res = await fetch(`https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/eng-${book}.min.json`);
                 const data = await res.json();
-                
-                let html = c.innerHTML;
+                let html = `<div style="padding:20px; text-align:center;"><p>Displaying first 50 hadiths.</p></div>`;
                 data.hadiths.slice(0, 50).forEach(h => {
-                    html += `<div class="ayah-block">
-                        <div style="font-weight:700; color:var(--text-muted); font-size:12px;">No. ${h.hadithnumber}</div>
-                        <div class="ayah-trans" style="margin-top:5px; color:var(--text);">${h.text}</div>
-                    </div>`;
+                    html += `<div class="ayah-block"><div style="font-weight:700; color:var(--text-muted); font-size:12px;">No. ${h.hadithnumber}</div><div class="ayah-trans" style="margin-top:5px; color:var(--text);">${h.text}</div></div>`;
                 });
                 c.innerHTML = html;
             }
         } catch(e) {
             c.innerHTML = `<div style="color:red; text-align:center;">Error loading Hadith. Check internet.</div>`;
-            console.error(e);
         }
     }
 
-    // --- PRAYER & LOCATION LOGIC ---
+    // --- PRAYER & LOCATION ---
     function getLocation() {
         document.getElementById('locationText').textContent = "Locating...";
         if(navigator.geolocation) {
@@ -534,7 +508,9 @@
     }
 
     function cycleNotif(k) {
-        if(Notification.permission === 'default') { Notification.requestPermission(); }
+        if(Notification.permission === 'default') { 
+            Notification.requestPermission();
+        }
         const m=['sound','silent','off']; const c=STATE.notifSettings[k]||'sound';
         STATE.notifSettings[k] = m[(m.indexOf(c)+1)%3];
         localStorage.setItem('wsl_notif_settings', JSON.stringify(STATE.notifSettings));
@@ -543,7 +519,8 @@
     function convertTo12Hour(t) { let [h,m]=t.split(':'); h=parseInt(h); const am=h>=12?'PM':'AM'; h=h%12||12; return `${h}:${m} ${am}`; }
 
     function startTimer() {
-        setInterval(() => {
+        if(timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
             if(!STATE.prayerTimes) return;
             const now = new Date(); let next=null, nTime=null;
             for(let k of prayerKeys) {
@@ -555,8 +532,12 @@
             const hh = Math.floor(diff/3600000).toString().padStart(2,'0');
             const mm = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
             const ss = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
-            document.getElementById('countdown').textContent = `${hh}:${mm}:${ss}`;
-            document.getElementById('nextPrayerName').textContent = prayerNames[next];
+            
+            const countEl = document.getElementById('countdown');
+            if(countEl) countEl.textContent = `${hh}:${mm}:${ss}`;
+            const nameEl = document.getElementById('nextPrayerName');
+            if(nameEl) nameEl.textContent = prayerNames[next];
+            
             checkNotifications(STATE.prayerTimes);
         }, 1000);
     }
@@ -580,13 +561,23 @@
         const l=document.getElementById('surahList'); 
         l.innerHTML='Loading...'; 
         try {
-            const r=await fetch('https://api.alquran.cloud/v1/surah'); const d=await r.json(); l.innerHTML='';
-            d.data.forEach(s => {
-                l.innerHTML += `<div class="surah-item" onclick="openReader(${s.number},'${s.englishName}')"><div class="surah-num">${s.number}</div><div style="flex:1"><div style="font-weight:700">${s.englishName}</div><div style="font-size:12px;color:var(--text-muted)">${s.englishNameTranslation}</div></div><div class="surah-arabic">${s.name}</div></div>`;
-            });
+            if(STATE.quranListCache) {
+                renderSurahList(STATE.quranListCache); return;
+            }
+            const r=await fetch('https://api.alquran.cloud/v1/surah'); const d=await r.json(); 
+            STATE.quranListCache = d.data;
+            renderSurahList(d.data);
         } catch(e){
             l.innerHTML = 'Error loading list.';
         }
+    }
+
+    function renderSurahList(data) {
+        const l=document.getElementById('surahList');
+        l.innerHTML = '';
+        data.forEach(s => {
+            l.innerHTML += `<div class="surah-item" onclick="openReader(${s.number},'${s.englishName}')"><div class="surah-num">${s.number}</div><div style="flex:1"><div style="font-weight:700">${s.englishName}</div><div style="font-size:12px;color:var(--text-muted)">${s.englishNameTranslation}</div></div><div class="surah-arabic">${s.name}</div></div>`;
+        });
     }
 
     async function openReader(n,t) {
@@ -622,7 +613,7 @@
         } catch(e){ c.innerHTML='Error loading.'; }
     }
     
-    // --- BOOKMARK LOGIC ---
+    // --- BOOKMARKS ---
     window.togAyah = function(b,s,a,ar,tr,sn) {
         ar = decodeURIComponent(ar); tr = decodeURIComponent(tr); sn = decodeURIComponent(sn);
         const id=`ayah_${s}_${a}`; const i=STATE.bookmarks.findIndex(x=>x.id===id);
@@ -649,7 +640,7 @@
         });
     }
 
-    // --- NAVIGATION LOGIC ---
+    // --- NAV ---
     function updateGreeting() { const h=new Date().getHours(); document.getElementById('greetings').textContent=`Assalamualaikum, ${h<12?'Good Morning':h<18?'Good Afternoon':'Good Evening'}`; }
     function switchTab(id, b) {
         document.querySelectorAll('.view').forEach(v=>v.classList.remove('active')); document.getElementById('view-'+id).classList.add('active');
@@ -662,5 +653,3 @@
 </script>
 </body>
 </html>
-
-
