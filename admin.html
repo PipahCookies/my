@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WSL Admin Panel</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leaflet CSS for Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { background-color: #1a1a1a; color: #f3f4f6; }
@@ -19,17 +17,16 @@
     <div class="max-w-6xl mx-auto">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-yellow-500">WaktuSolatLite Analytics</h1>
-            <div class="text-sm text-gray-400">Live Dashboard</div>
+            <div class="text-sm text-gray-400">Live Dashboard <span id="statusIndicator" class="text-green-500">●</span></div>
         </div>
 
-        <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="card">
                 <div class="text-gray-400 text-sm mb-1">Total Installs</div>
                 <div class="text-4xl font-bold" id="totalUsers">0</div>
             </div>
             <div class="card">
-                <div class="text-gray-400 text-sm mb-1">Active Today</div>
+                <div class="text-gray-400 text-sm mb-1">Active (Last 24h)</div>
                 <div class="text-4xl font-bold text-green-500" id="activeUsers">0</div>
             </div>
             <div class="card">
@@ -38,13 +35,11 @@
             </div>
         </div>
 
-        <!-- Map Section -->
         <div class="card mb-8">
             <h2 class="text-xl font-bold mb-4">User Distributions</h2>
             <div id="map"></div>
         </div>
 
-        <!-- Data Table -->
         <div class="card">
             <h2 class="text-xl font-bold mb-4">Recent Users</h2>
             <div class="overflow-x-auto">
@@ -65,26 +60,23 @@
         </div>
     </div>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Firebase Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // --- PASTE YOUR FIREBASE CONFIG HERE ---
         const firebaseConfig = {
-  apiKey: "AIzaSyBQMVNRDYsKHRj_-bwKbFICyN6XseL3CDI",
-  authDomain: "waktusolatlite.firebaseapp.com",
-  projectId: "waktusolatlite",
-  storageBucket: "waktusolatlite.firebasestorage.app",
-  messagingSenderId: "86910439082",
-  appId: "1:86910439082:web:e482d01e1451e58179cad3"
-};
+          apiKey: "AIzaSyBQMVNRDYsKHRj_-bwKbFICyN6XseL3CDI",
+          authDomain: "waktusolatlite.firebaseapp.com",
+          projectId: "waktusolatlite",
+          storageBucket: "waktusolatlite.firebasestorage.app",
+          messagingSenderId: "86910439082",
+          appId: "1:86910439082:web:e482d01e1451e58179cad3"
+        };
 
         // Initialize Map
-        const map = L.map('map').setView([3.1390, 101.6869], 5); // Default to Malaysia center
+        const map = L.map('map').setView([3.1390, 101.6869], 6); 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
             subdomains: 'abcd',
@@ -101,23 +93,24 @@
                 const users = snapshot.val();
                 if (!users) {
                     document.getElementById('totalUsers').textContent = "0";
-                    document.getElementById('userTableBody').innerHTML = '<tr><td colspan="4" class="p-3 text-center">No users found</td></tr>';
+                    document.getElementById('activeUsers').textContent = "0";
+                    document.getElementById('userTableBody').innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-500">No users found</td></tr>';
                     return;
                 }
 
                 const userList = Object.keys(users).map(key => ({ id: key, ...users[key] }));
                 
                 // Sort by last active (newest first)
-                userList.sort((a, b) => b.lastActive - a.lastActive);
+                userList.sort((a, b) => (b.lastActive || 0) - (a.lastActive || 0));
 
                 // Update Stats
                 document.getElementById('totalUsers').textContent = userList.length;
                 
                 const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-                const activeCount = userList.filter(u => u.lastActive > oneDayAgo).length;
+                const activeCount = userList.filter(u => u.lastActive && u.lastActive > oneDayAgo).length;
                 document.getElementById('activeUsers').textContent = activeCount;
                 
-                if(userList.length > 0) {
+                if(userList.length > 0 && userList[0].lastActive) {
                     document.getElementById('lastActivity').textContent = new Date(userList[0].lastActive).toLocaleTimeString();
                 }
 
@@ -125,9 +118,9 @@
                 const tbody = document.getElementById('userTableBody');
                 tbody.innerHTML = '';
                 userList.slice(0, 20).forEach(u => { // Show top 20
-                    const date = new Date(u.lastActive).toLocaleString();
+                    const date = u.lastActive ? new Date(u.lastActive).toLocaleString() : 'Never';
                     const shortId = u.id.substring(0, 8) + '...';
-                    const latLon = u.lat && u.lon ? `${u.lat.toFixed(4)}, ${u.lon.toFixed(4)}` : 'N/A';
+                    const latLon = u.lat && u.lon ? `${u.lat.toFixed(4)}, ${u.lon.toFixed(4)}` : 'Hidden/N/A';
                     
                     const row = `
                         <tr class="border-b border-gray-800 hover:bg-white/5">
@@ -141,7 +134,6 @@
                 });
 
                 // Update Map Markers
-                // Clear old markers
                 markers.forEach(m => map.removeLayer(m));
                 markers.length = 0;
 
@@ -156,7 +148,8 @@
                             fillOpacity: 0.8
                         }).addTo(map);
                         
-                        marker.bindPopup(`<b>User:</b> ${u.id.substring(0,6)}...<br><b>Last Seen:</b> ${new Date(u.lastActive).toLocaleDateString()}`);
+                        const dateStr = u.lastActive ? new Date(u.lastActive).toLocaleDateString() : 'Unknown';
+                        marker.bindPopup(`<b>User:</b> ${u.id.substring(0,6)}...<br><b>Last Seen:</b> ${dateStr}`);
                         markers.push(marker);
                     }
                 });
@@ -165,9 +158,9 @@
 
         } catch (e) {
             console.error("Firebase Error:", e);
+            document.getElementById('statusIndicator').className = "text-red-500";
             document.getElementById('userTableBody').innerHTML = '<tr><td colspan="4" class="p-3 text-center text-red-500">Error connecting to Firebase</td></tr>';
         }
     </script>
 </body>
 </html>
-
