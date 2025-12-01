@@ -121,7 +121,11 @@
         .tool-btn span { font-size: 12px; font-weight: 700; }
         .tool-btn svg { color: var(--primary); }
 
-        .iframe-wrap { width: 100%; border: none; border-radius: 12px; background: white; margin-top: 10px; display: block; overflow: hidden; }
+        .iframe-wrap { width: 100%; border: none; border-radius: 12px; background: white; margin-top: 10px; display: block; overflow: hidden; position: relative; }
+        .missing-file-placeholder {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; background: var(--bg); color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px;
+        }
 
         /* Reader Modal */
         #readerModal { position: fixed; inset: 0; background: var(--bg); z-index: 400; transform: translateY(100%); transition: transform 0.3s; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
@@ -150,7 +154,6 @@
 </head>
 <body>
 
-    <!-- STICKY HEADER PANEL (Fixed Position) -->
     <header class="header-overlay" id="stickyHeader">
         <div class="header-left">
             <div class="header-greeting" id="greetings">Assalamualaikum</div>
@@ -163,9 +166,8 @@
     </header>
 
     <div id="view-home" class="view active">
-        <!-- HERO SECTION -->
         <div class="hero-wrapper">
-            <div class="hero" id="hero" role="banner" aria-label="Prayer hero">
+            <div class="hero" id="hero">
                 <div class="hero-card-bg" id="heroCard">
                     <div class="hero-top">
                         <div class="hero-left">
@@ -180,9 +182,9 @@
                         </div>
                     </div>
 
-                    <div class="hero-divider" aria-hidden="true"></div>
+                    <div class="hero-divider"></div>
 
-                    <div id="heroPrayers" aria-live="polite">
+                    <div id="heroPrayers">
                         <div id="prayerNames"></div>
                         <div id="prayerTimes"></div>
                     </div>
@@ -190,7 +192,6 @@
             </div>
         </div>
 
-        <!-- MAIN CONTENT -->
         <div id="app-container">
             <div id="announcementBanner" style="display:none; background:#FEF3C7; color:#92400E; padding:12px; margin-bottom:15px; border-radius:12px; border-left:4px solid #F59E0B; font-size:13px;"></div>
             
@@ -201,7 +202,6 @@
         </div>
     </div>
 
-    <!-- OTHER VIEWS -->
     <div id="view-quran" class="view" style="padding: 20px; padding-top: 80px;">
         <h1 style="color:var(--text); font-size:24px; font-weight:800; margin-bottom:20px;">Al Quran</h1>
         <select id="quranLangSelect" onchange="loadQuranList()" style="width:100%; padding:12px; border-radius:12px; margin-bottom:15px; background:var(--surface); color:var(--text); border:1px solid var(--border);">
@@ -217,7 +217,6 @@
         <div id="bookmarksList" class="card"></div>
     </div>
 
-    <!-- SIDE PANEL (RESTORED) -->
     <div id="sidePanelOverlay" onclick="toggleSidePanel()"></div>
     <aside id="sidePanel">
         <div class="panel-header">
@@ -226,7 +225,6 @@
         </div>
         <div class="panel-content">
             
-            <!-- 1. Daily Hadith (Restored Bookmark) -->
             <div class="section-title">Daily Hadith</div>
             <div class="card" style="margin:0 0 20px 0; border-radius:16px;">
                 <div style="font-style:italic; font-size:14px; margin-bottom:8px; line-height:1.5;" id="hadithTextContent">Loading...</div>
@@ -236,7 +234,6 @@
                 </div>
             </div>
 
-            <!-- 2. Hadith Collections (Restored All) -->
             <div class="section-title">Hadith Collections</div>
             <div class="tool-grid">
                 <div class="tool-btn" onclick="openHadithCollection('bukhari')">
@@ -257,13 +254,9 @@
                 </div>
             </div>
 
-            <!-- 3. Panduan² (Restored) -->
             <div class="section-title">Panduan² (Guides)</div>
-            <div class="tool-grid" id="panduanContainer">
-                <!-- Populated by JS -->
-            </div>
+            <div class="tool-grid" id="panduanContainer"></div>
             
-            <!-- 4. Daily Duas (Restored) -->
             <div class="section-title">Daily Duas</div>
             <div class="tool-grid">
                 <div class="tool-btn" onclick="openDuas()" style="grid-column: span 2; flex-direction: row; justify-content: center; gap: 15px;">
@@ -272,21 +265,29 @@
                 </div>
             </div>
 
-            <!-- 5. Utility Tools (Restored IFrames) -->
             <div class="section-title" style="margin-top:20px;">Utility Tools</div>
             <div class="card" style="padding:10px; margin-bottom:10px;">
                 <div class="section-title" style="font-size:14px; margin-bottom:5px;">Qibla Compass</div>
-                <iframe src="qiblat.html" class="iframe-wrap" style="height: 300px;" allow="geolocation; magnetometer; gyroscope; accelerometer; orientation" scrolling="no"></iframe>
+                <div class="iframe-wrap" style="height: 300px;">
+                    <iframe src="qiblat.html" style="width:100%; height:100%; border:none;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"></iframe>
+                    <div class="missing-file-placeholder" style="display:none;">
+                        <strong>Feature Unavailable</strong><br>qiblat.html not found.
+                    </div>
+                </div>
             </div>
             <div class="card" style="padding:10px;">
                 <div class="section-title" style="font-size:14px; margin-bottom:5px;">Takwim Hijri</div>
-                <iframe src="Takwim-hijri.html" class="iframe-wrap" style="height: 360px;" allow="geolocation" scrolling="no"></iframe>
+                <div class="iframe-wrap" style="height: 360px;">
+                    <iframe src="Takwim-hijri.html" style="width:100%; height:100%; border:none;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"></iframe>
+                    <div class="missing-file-placeholder" style="display:none;">
+                        <strong>Feature Unavailable</strong><br>Takwim-hijri.html not found.
+                    </div>
+                </div>
             </div>
 
         </div>
     </aside>
 
-    <!-- READER MODAL -->
     <div id="readerModal">
         <div class="reader-header">
             <div style="display:flex; flex-direction:column;">
@@ -298,7 +299,6 @@
         <div class="reader-content" id="readerContent"></div>
     </div>
 
-    <!-- NAVBAR -->
     <nav class="nav-bar">
         <button class="nav-item active" onclick="switchTab('home', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span class="nav-label">Home</span></button>
         <button class="nav-item" onclick="switchTab('quran', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span class="nav-label">Quran</span></button>
@@ -313,43 +313,64 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    
     const firebaseConfig = {
-  apiKey: "AIzaSyBQMVNRDYsKHRj_-bwKbFICyN6XseL3CDI",
-  authDomain: "waktusolatlite.firebaseapp.com",
-  projectId: "waktusolatlite",
-  storageBucket: "waktusolatlite.firebasestorage.app",
-  messagingSenderId: "86910439082",
-  appId: "1:86910439082:web:e482d01e1451e58179cad3"
-};
+      apiKey: "AIzaSyBQMVNRDYsKHRj_-bwKbFICyN6XseL3CDI",
+      authDomain: "waktusolatlite.firebaseapp.com",
+      projectId: "waktusolatlite",
+      storageBucket: "waktusolatlite.firebasestorage.app",
+      messagingSenderId: "86910439082",
+      appId: "1:86910439082:web:e482d01e1451e58179cad3"
+    };
+
     try {
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // --- 1. ANALYTICS & LOCATION TRACKING ---
-        window.trackLocation = function(lat, lon) {
-            // Get or create unique Install ID
+        // Expose helper to window for main script
+        window.updateUserLocation = function(lat, lon, device) {
             let installId = localStorage.getItem('wsl_install_id');
-            if(!installId) { installId = crypto.randomUUID(); localStorage.setItem('wsl_install_id', installId); }
-            
-            // Update User Data in Firebase
+            if(!installId) { 
+                installId = crypto.randomUUID(); 
+                localStorage.setItem('wsl_install_id', installId); 
+            }
             update(ref(db, 'users/' + installId), {
                 lastActive: Date.now(),
                 lat: lat,
                 lon: lon,
-                device: navigator.userAgent || 'Unknown'
+                device: device
             });
         };
 
+        // Initialize user tracking immediately if possible, or wait for trigger
+        window.firebaseReady = true;
+
         onValue(ref(db, 'announcement'), (snap) => {
-            const d = snap.val(); const el = document.getElementById('announcementBanner');
-            if(d && d.show && d.text) { el.style.display='block'; el.textContent=d.text; } else el.style.display='none';
+            const d = snap.val(); 
+            const el = document.getElementById('announcementBanner');
+            if(d && d.show && d.text) { el.style.display='block'; el.textContent=d.text; } 
+            else el.style.display='none';
         });
+
         onValue(ref(db, 'hadiths'), (snap) => {
             const arr=[]; snap.forEach(c=>arr.push(c.val()));
-            if(arr.length>0) { const r=arr[Math.floor(Math.random()*arr.length)]; document.getElementById('hadithTextContent').textContent=`"${r.text}"`; document.getElementById('hadithSourceContent').textContent=r.source; checkHadithBookmark(); }
+            if(arr.length>0) { 
+                const r=arr[Math.floor(Math.random()*arr.length)]; 
+                document.getElementById('hadithTextContent').textContent=`"${r.text}"`; 
+                document.getElementById('hadithSourceContent').textContent=r.source; 
+                if(window.checkHadithBookmark) window.checkHadithBookmark(); 
+            }
         });
-        onValue(ref(db, 'duas'), (snap) => { if(!window.STATE)window.STATE={}; window.STATE.duasCache=[]; if(snap.exists()) snap.forEach(x=>window.STATE.duasCache.push(x.val())); });
-    } catch(e) { console.log("Firebase placeholder - configured."); window.trackLocation = function(){}; }
+
+        onValue(ref(db, 'duas'), (snap) => { 
+            if(!window.STATE) window.STATE={}; 
+            window.STATE.duasCache=[]; 
+            if(snap.exists()) snap.forEach(x=>window.STATE.duasCache.push(x.val())); 
+        });
+
+    } catch(e) { 
+        console.error("Firebase Error", e); 
+    }
 </script>
 
 <script>
@@ -360,8 +381,6 @@
         Fajr: "images/subuh.jpg", Dhuhr: "images/zohor.jpg", Asr: "images/asar.jpg", 
         Maghrib: "images/maghrib.jpg", Isha: "images/isyak.jpg", Default: "images/isyak.jpg"
     };
-
-    // --- RESTORED PANDUAN DATA ---
     const PANDUAN_DATA = [
         {title: "Panduan Wudhu", id:"wudhu", icon: "💧"},
         {title: "Panduan Solat", id:"solat", icon: "🤲"},
@@ -373,14 +392,24 @@
         applyTheme(); getLocation(); updateGreeting(); renderBookmarksList(); renderPanduan();
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
         
-        // Sticky Header Effect
         window.addEventListener('scroll', () => {
             const header = document.getElementById('stickyHeader');
             if (window.scrollY > 30) header.classList.add('scrolled'); else header.classList.remove('scrolled');
         });
+
+        // Fallback checks for iframes
+        document.querySelectorAll('iframe').forEach(frame => {
+            try {
+                // We can't actually check internal status due to CORS if external, 
+                // but we can catch basic load errors on some browsers.
+                frame.addEventListener('error', () => {
+                    frame.style.display = 'none';
+                    frame.nextElementSibling.style.display = 'flex';
+                });
+            } catch(e){}
+        });
     });
 
-    // --- SIDE PANEL RESTORED FUNCTIONS ---
     function renderPanduan() {
         const c = document.getElementById('panduanContainer');
         c.innerHTML = PANDUAN_DATA.map(p => `
@@ -412,7 +441,7 @@
              html = `<div style="text-align:center; padding:20px;">Content for ${title} is being updated.</div>`;
         }
         c.innerHTML = html;
-    }
+    };
 
     window.openDuas = function() {
         const m = document.getElementById('readerModal'); const c = document.getElementById('readerContent');
@@ -424,7 +453,7 @@
         STATE.duasCache.forEach(v => {
             c.innerHTML += `<div class="card" style="padding:15px;margin-bottom:10px;"><div style="font-weight:700;font-size:16px;">${v.t}</div><div style="font-family:Amiri;text-align:right;font-size:20px;color:var(--primary);margin:10px 0;">${v.a}</div><div style="font-size:14px;color:var(--text-muted);line-height:1.5">${v.m}</div></div>`;
         });
-    }
+    };
 
     window.openHadithCollection = async function(type) {
         const m = document.getElementById('readerModal'); const c = document.getElementById('readerContent');
@@ -462,28 +491,28 @@
                 c.innerHTML = html;
             }
         } catch(e) { c.innerHTML = `<div style="color:red; text-align:center;">Error loading Hadith.</div>`; }
-    }
+    };
 
-    // --- BOOKMARK LOGIC (RESTORED HADITH SUPPORT) ---
+    // --- BOOKMARK LOGIC ---
     window.togAyah = function(b,s,a,ar,tr,sn) {
         ar = decodeURIComponent(ar); tr = decodeURIComponent(tr); sn = decodeURIComponent(sn);
         const id=`ayah_${s}_${a}`; const i=STATE.bookmarks.findIndex(x=>x.id===id);
         if(i>-1){STATE.bookmarks.splice(i,1);b.classList.remove('saved');}
         else{STATE.bookmarks.push({id,type:'ayah',surahNum:s,ayahNum:a,arText:ar,trText:tr,surahName:sn});b.classList.add('saved');}
         localStorage.setItem('wsl_bookmarks',JSON.stringify(STATE.bookmarks)); renderBookmarksList();
-    }
+    };
     window.toggleHadithBookmark = function(b) {
         const t=document.getElementById('hadithTextContent').textContent; const src=document.getElementById('hadithSourceContent').textContent;
         const id=`hadith_${t.substring(0,10)}`; const i=STATE.bookmarks.findIndex(x=>x.id===id);
         if(i>-1){STATE.bookmarks.splice(i,1);b.classList.remove('saved');}
         else{STATE.bookmarks.push({id,type:'hadith',text:t,src:src});b.classList.add('saved');}
         localStorage.setItem('wsl_bookmarks',JSON.stringify(STATE.bookmarks)); renderBookmarksList();
-    }
+    };
     window.checkHadithBookmark = function() {
         const t=document.getElementById('hadithTextContent').textContent; const b=document.getElementById('hadithBookmark');
         if(!b) return;
         if(STATE.bookmarks.some(x=>x.id===`hadith_${t.substring(0,10)}`)) b.classList.add('saved'); else b.classList.remove('saved');
-    }
+    };
     function renderBookmarksList() {
         const l=document.getElementById('bookmarksList'); if(STATE.bookmarks.length===0){l.innerHTML='<div style="color:var(--text-muted);font-size:13px;text-align:center;">No bookmarks.</div>';return;}
         l.innerHTML=''; STATE.bookmarks.forEach(b => {
@@ -492,13 +521,6 @@
     }
 
     // --- TIME & HERO LOGIC ---
-    function formatTime(t) {
-        if(!t) return '--:--';
-        let [h, m] = t.split(':'); h = parseInt(h);
-        const am = h >= 12 ? 'PM' : 'AM';
-        h = h % 12 || 12;
-        return `${h}:${m}`; 
-    }
     function renderHeroPrayers(timings) {
         const order = ['Imsak','Fajr','Dhuhr','Asr','Maghrib','Isha'];
         const namesDiv = document.getElementById('prayerNames'); const timesDiv = document.getElementById('prayerTimes');
@@ -555,20 +577,54 @@
         if(p.classList.contains('open')) { p.classList.remove('open'); o.classList.remove('open'); }
         else { p.classList.add('open'); o.classList.add('open'); }
     }
+    
+    // --- LOCATION & FIREBASE SYNC (FIXED) ---
     function getLocation() {
         document.getElementById('locationName').textContent = "Locating...";
-        if(navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(p => {
-                STATE.lat = p.coords.latitude; STATE.lon = p.coords.longitude;
-                localStorage.setItem('wsl_coords', JSON.stringify({lat: STATE.lat, lon: STATE.lon}));
-                
-                // --- TRACKING CALL ---
-                if(window.trackLocation) window.trackLocation(STATE.lat, STATE.lon);
+        
+        // 1. Success callback (User allows GPS)
+        const onSuccess = (p) => {
+            STATE.lat = p.coords.latitude; STATE.lon = p.coords.longitude;
+            localStorage.setItem('wsl_coords', JSON.stringify({lat: STATE.lat, lon: STATE.lon}));
+            document.getElementById('locationName').textContent = "Current Location";
+            syncLocationToFirebase(STATE.lat, STATE.lon);
+            fetchTimes();
+        };
 
-                fetchTimes(); document.getElementById('locationName').textContent = "Current Location";
-            }, () => { document.getElementById('locationName').textContent = "Kuala Lumpur"; fetchTimes(); });
-        } else { document.getElementById('locationName').textContent = "Kuala Lumpur"; fetchTimes(); }
+        // 2. Error callback (User denies GPS) - Still track "Active" status, just no lat/lon
+        const onError = () => {
+            document.getElementById('locationName').textContent = "Kuala Lumpur (Default)";
+            // Try to load last known
+            const last = localStorage.getItem('wsl_coords');
+            if(last) {
+                const p = JSON.parse(last);
+                STATE.lat = p.lat; STATE.lon = p.lon;
+            }
+            syncLocationToFirebase(null, null); // Send heartbeat without location
+            fetchTimes();
+        };
+
+        if(navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(onSuccess, onError);
+        } else { onError(); }
     }
+
+    // Wait for module to load before sending data
+    function syncLocationToFirebase(lat, lon) {
+        const device = navigator.userAgent || 'Unknown';
+        
+        // Retry logic: Module script might load after this script
+        let attempts = 0;
+        const interval = setInterval(() => {
+            if(window.updateUserLocation) {
+                window.updateUserLocation(lat, lon, device);
+                clearInterval(interval);
+            }
+            attempts++;
+            if(attempts > 20) clearInterval(interval); // Stop after 10s
+        }, 500);
+    }
+
     async function fetchTimes() {
         try {
             const res = await fetch(`https://api.aladhan.com/v1/timings/${Math.floor(Date.now()/1000)}?latitude=${STATE.lat}&longitude=${STATE.lon}&method=11`);
@@ -639,11 +695,9 @@
         if(id!=='home') { h.classList.add('scrolled'); h.style.background='var(--surface)'; } else { h.style.background=''; h.classList.remove('scrolled'); }
         if(id==='quran') loadQuranList();
     }
-    window.closeReader = function(){ document.getElementById('readerModal').classList.remove('open'); }
+    window.closeReader = function(){ document.getElementById('readerModal').classList.remove('open'); };
     let dp; window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;document.getElementById('pwaInstall').style.display='flex'});
     window.installPWA = function(){if(dp)dp.prompt();}
 </script>
 </body>
 </html>
-
-
