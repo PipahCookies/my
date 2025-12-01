@@ -17,7 +17,7 @@
     <div class="max-w-6xl mx-auto">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-yellow-500">WaktuSolatLite Analytics</h1>
-            <div class="text-sm text-gray-400">Live Dashboard <span id="statusIndicator" class="text-green-500">●</span></div>
+            <div class="text-sm text-gray-400">Status: <span id="statusIndicator" class="text-yellow-500">Connecting...</span></div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -62,17 +62,17 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
+    <script>
         const firebaseConfig = {
-          apiKey: "AIzaSyBQMVNRDYsKHRj_-bwKbFICyN6XseL3CDI",
-          authDomain: "waktusolatlite.firebaseapp.com",
-          projectId: "waktusolatlite",
-          storageBucket: "waktusolatlite.firebasestorage.app",
-          messagingSenderId: "86910439082",
-          appId: "1:86910439082:web:e482d01e1451e58179cad3"
+            apiKey: "AIzaSyBQMVNRDYsKHRj_-bwKbFICyN6XseL3CDI",
+            authDomain: "waktusolatlite.firebaseapp.com",
+            projectId: "waktusolatlite",
+            storageBucket: "waktusolatlite.firebasestorage.app",
+            messagingSenderId: "86910439082",
+            appId: "1:86910439082:web:e482d01e1451e58179cad3"
         };
 
         // Initialize Map
@@ -86,15 +86,22 @@
         const markers = [];
 
         try {
-            const app = initializeApp(firebaseConfig);
-            const db = getDatabase(app);
+            // Initialize Firebase
+            const app = firebase.initializeApp(firebaseConfig);
+            const db = firebase.database();
+            const statusEl = document.getElementById('statusIndicator');
 
-            onValue(ref(db, 'users'), (snapshot) => {
+            statusEl.textContent = "Live";
+            statusEl.className = "text-green-500";
+
+            // Listen for data
+            db.ref('users').on('value', (snapshot) => {
                 const users = snapshot.val();
+                
                 if (!users) {
                     document.getElementById('totalUsers').textContent = "0";
                     document.getElementById('activeUsers').textContent = "0";
-                    document.getElementById('userTableBody').innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-500">No users found</td></tr>';
+                    document.getElementById('userTableBody').innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-500">No users found yet. Open the app to generate data.</td></tr>';
                     return;
                 }
 
@@ -153,13 +160,16 @@
                         markers.push(marker);
                     }
                 });
-
+            }, (error) => {
+                console.error(error);
+                statusEl.textContent = "Error: " + error.message;
+                statusEl.className = "text-red-500";
             });
 
         } catch (e) {
             console.error("Firebase Error:", e);
+            document.getElementById('statusIndicator').textContent = "Config Error";
             document.getElementById('statusIndicator').className = "text-red-500";
-            document.getElementById('userTableBody').innerHTML = '<tr><td colspan="4" class="p-3 text-center text-red-500">Error connecting to Firebase</td></tr>';
         }
     </script>
 </body>
