@@ -6,6 +6,12 @@ const ASSETS_TO_CACHE = [
     './images/icon-512.png',
     './Takwim-hijri.html',
     './qiblat.html',
+    './images/subuh.jpg',
+    './images/zohor.jpg',
+    './images/asar.jpg',
+    './images/maghrib.jpg',
+    './images/isyak.jpg',
+    './images/offline.jpg',
     './manifest.json'
 ];
 
