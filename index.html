@@ -1,515 +1,598 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PipahCookies — Reseller Portal (Demo)</title>
-  <style>
- :root{
-    --primary:#A67734;
-    --primary-dark:#d4b390;
-    --accent:#fff1e6;
-    --whatsapp:#25d366;
-    --bg:#fff8f2;
-    --card:#ffffff;
-    --muted:#6b6b6b;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:"Fredoka",sans-serif;background:var(--bg);color:#222;-webkit-font-smoothing:antialiased}
-  h1,h2,h3{font-family:"Poppins",sans-serif;color:var(--primary-dark);margin:0 0 8px}
-  a{color:inherit}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#A67734">
+    <title>WaktuSolatLite</title>
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root[data-theme="light"] {
+            --primary: #A67734;
+            --primary-light: #FDF8F0;
+            --bg: #F8F9FA;
+            --surface: #FFFFFF;
+            --text: #1F2937;
+            --text-muted: #6B7280;
+            --border: #E5E7EB;
+            --shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+        }
+        
+        :root[data-theme="dark"] {
+            --primary: #D4AF37;
+            --primary-light: #2A2012;
+            --bg: #121212;
+            --surface: #1E1E1E;
+            --text: #F3F4F6;
+            --text-muted: #9CA3AF;
+            --border: #374151;
+            --shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
 
-/* Header */
-  .site-header{display:block}
-  .header-img{width:100%;height:auto;display:block;object-fit:cover;max-height:360px;border-radius:0 0 14px 14px;box-shadow:0 8px 18px rgba(0,0,0,0.06);animation:fadeUp .9s both}
-/* Nav */
-  .site-nav{position:sticky;top:0;background:var(--primary);z-index:40;padding:10px 0}
-  .nav-list{list-style:none;margin:0;padding:0;display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap}
-  .nav-list a{color:#fff;text-decoration:none;font-weight:700;padding:8px 12px;border-radius:8px;transition:transform .15s}
-  .nav-list a:hover{transform:translateY(-3px);background:rgba(255,255,255,0.08)}
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; transition: background 0.3s, color 0.3s; }
 
-/* Sections */
-  .section{padding:36px 18px}
-  .lead{max-width:900px;margin:0 auto;color:var(--muted);line-height:1.6}
+        /* --- VIEWS --- */
+        #app-container { flex: 1; overflow-y: auto; padding-bottom: 90px; position: relative; scroll-behavior: smooth; padding: 20px; }
+        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Syarat box */
-.syarat-box{max-width:920px;margin:0 auto;background:linear-gradient(180deg,rgba(255,255,255,0.9),var(--accent));padding:18px;border-radius:12px;box-shadow:0 12px 30px rgba(166,119,52,0.08);border:1px solid rgba(166,119,52,0.06)}
-.syarat-box ul{margin:12px 0 0 18px}
-.syarat-box li{margin-bottom:8px;color:#333}
+        /* --- HEADER --- */
+        .header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
+        .header-greeting { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .header-title { font-size: 26px; font-weight: 800; color: var(--primary); margin: 0; }
+        
+        .theme-toggle { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; box-shadow: var(--shadow); transition: transform 0.2s; }
+        .theme-toggle:active { transform: scale(0.9); }
 
-/* Product Section Layout */
-.products { display:flex;flex-wrap:wrap;gap:20px;justify-content:center }
-.product-card { flex:0 0 calc(33.333% - 20px); height:420px; background:var(--card); padding:15px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.06); overflow:hidden; text-align:center; display:flex; flex-direction:column; justify-content:space-between }
-@media (max-width: 900px){ .product-card{flex:0 0 calc(50% - 20px)} }
-@media (max-width:600px){ .product-card{flex:0 0 calc(100% - 20px)} }
-.product-slider{position:relative;overflow:hidden;border-radius:10px}
-.product-img{
-  width:100%;
-  height:240px;              /* was 170px → now taller/wider */
-  object-fit:cover;          /* fills better visually */
-  display:none;
-  border-radius:10px;
-  transition:opacity .4s ease-in-out;
-}
-.product-img.active{display:block}
-.slider-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
-.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.6);cursor:pointer}
-.dot.active{background:var(--primary-dark)}
+        /* --- HERO --- */
+        .hero-card {
+            background: linear-gradient(135deg, var(--primary), #8a6026);
+            color: white; border-radius: 24px; padding: 24px; margin-top: 5px;
+            position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(166, 119, 52, 0.25);
+        }
+        .prayer-countdown-label { font-size: 14px; opacity: 0.9; font-weight: 500; }
+        .prayer-countdown-time { font-size: 48px; font-weight: 800; margin: 5px 0; letter-spacing: -1px; }
+        .location-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 
-.card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 12px 24px rgba(0,0,0,0.06);transition:transform .18s}
-.card:hover{transform:translateY(-8px)}
-.old-price{text-decoration:line-through;color:gray;font-size:14px}
-.price{color:var(--primary-dark);font-weight:700;margin-bottom:6px}
+        #announcementBanner { display: none; background: #FEF3C7; color: #92400E; padding: 12px; margin: 15px 0; border-radius: 12px; font-size: 13px; border-left: 4px solid #F59E0B; }
 
-.qty-control{display:flex;justify-content:center;align-items:center;gap:8px;margin:10px 0}
-.qty-btn{background:var(--primary);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:18px;cursor:pointer;transition:transform .12s}
-.qty-btn:hover{background:var(--primary-dark);transform:scale(1.04)}
-.qty-input{min-width:48px;text-align:center;border-radius:8px;border:1px solid #eee;padding:6px;background:#fff}
-.btn{display:inline-block;padding:10px 14px;border-radius:22px;border:none;cursor:pointer;font-weight:800;transition:transform .14s,box-shadow .14s}
-.btn.primary{background:var(--primary);color:#fff}
-.btn.primary:hover{background:var(--primary-dark);transform:translateY(-3px)}
-.btn.secondary{background:#fff;color:var(--primary);border:2px solid var(--primary)}
-.btn.checkout{background:var(--whatsapp);color:#fff}
+        /* --- CARDS --- */
+        .card { background: var(--surface); border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .section-title { font-size: 18px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
 
-.thumbs{display:flex;gap:8px;align-items:center;overflow-x:auto;padding-top:8px;justify-content:center}
-.thumb{width:72px;height:72px;border-radius:8px;border:2px solid transparent;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.thumb.active{border-color:var(--accent)}
+        /* --- PRAYER LIST --- */
+        .prayer-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
+        .prayer-row:last-child { border-bottom: none; }
+        .prayer-info { display: flex; gap: 15px; align-items: center; }
+        .prayer-time { font-weight: 700; }
+        
+        /* 3-State Bell Button */
+        .bell-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 5px; border-radius: 8px; transition: color 0.2s, background 0.2s; display: flex; align-items: center; }
+        .bell-btn.sound { color: var(--primary); background: var(--primary-light); }
+        .bell-btn.silent { color: var(--text); opacity: 0.6; }
+        .bell-btn.off { color: #ef4444; opacity: 0.5; text-decoration: line-through; }
 
-#cart-icon{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:var(--primary);color:#fff;border:none;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;z-index:120;box-shadow:0 14px 30px rgba(0,0,0,0.16);transition:transform .18s}
-#cart-badge{position:absolute;top:6px;right:6px;background:#ff3b3b;color:#fff;padding:3px 7px;border-radius:50%;font-weight:800;font-size:12px;box-shadow:0 6px 12px rgba(0,0,0,0.12)}
+        /* --- HADITH & QURAN --- */
+        .bookmark-btn { background: none; border: none; cursor: pointer; padding: 5px; color: var(--border); transition: 0.2s; }
+        .bookmark-btn.saved { color: var(--primary); }
+        .bookmark-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
-.cart-panel{position:fixed;right:20px;bottom:92px;width:340px;max-height:72vh;overflow:auto;background:#fff;padding:12px;border-radius:12px;box-shadow:0 30px 60px rgba(0,0,0,0.18);z-index:120;transform:translateY(10px);opacity:0;pointer-events:none}
-.cart-panel.show{transform:translateY(0);opacity:1;pointer-events:auto;animation:slideUp .26s both}
-.cart-header{display:flex;justify-content:space-between;align-items:center}
-.close-cart{background:transparent;border:none;font-size:18px;cursor:pointer}
-.cart-items{list-style:none;padding:0;margin:10px 0;display:flex;flex-direction:column;gap:8px}
-.cart-items li{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;background:#fff9f5;border:1px solid #fee6d8}
-.cart-items li button{margin-left:6px;padding:6px 8px;border-radius:6px;border:none;cursor:pointer}
+        .hadith-text { font-style: italic; line-height: 1.6; font-size: 15px; margin-bottom: 10px; }
+        .hadith-source { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
 
-.checkout-form{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-.checkout-form input,.checkout-form textarea{padding:8px;border-radius:8px;border:1px solid #eee;font-family:inherit}
+        .surah-item { display: flex; align-items: center; padding: 16px; background: var(--surface); margin-bottom: 10px; border-radius: 16px; box-shadow: var(--shadow); cursor: pointer; }
+        .surah-num { background: var(--primary-light); color: var(--primary); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 700; margin-right: 15px; }
+        .surah-arabic { font-family: 'Amiri', serif; font-size: 20px; color: var(--primary); margin-left: auto; }
 
-.cart-summary{margin-top:6px}
-.cart-actions{margin-top:10px;display:flex;gap:8px;justify-content:space-between}
-.hidden{display:none}
+        /* --- READER MODAL --- */
+        #readerModal { position: fixed; inset: 0; background: var(--bg); z-index: 200; transform: translateY(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; }
+        #readerModal.open { transform: translateY(0); }
+        .reader-header { padding: 15px 20px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+        .reader-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .ayah-block { margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px dashed var(--border); position: relative; }
+        .ayah-tools { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .ayah-arabic { font-family: 'Amiri', serif; font-size: 28px; line-height: 2.2; text-align: right; color: var(--text); margin-bottom: 10px; }
+        .ayah-trans { font-size: 15px; line-height: 1.6; color: var(--text-muted); }
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
-.added{animation:bounce .46s both}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-.fade-up{opacity:0;animation:fadeInUp .9s forwards}
+        /* --- BOTTOM NAV --- */
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--surface); display: grid; grid-template-columns: repeat(4, 1fr); box-shadow: 0 -5px 20px rgba(0,0,0,0.05); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--border); z-index: 100; }
+        .nav-item { border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-muted); cursor: pointer; }
+        .nav-item.active { color: var(--primary); }
+        .nav-label { font-size: 10px; font-weight: 600; }
 
-  </style>
+        /* --- UTILS --- */
+        .iframe-wrap { width: 100%; height: 500px; border: none; border-radius: 16px; background: white; margin-bottom: 20px; }
+        #pwaInstall { display: none; position: fixed; bottom: 90px; left: 20px; right: 20px; background: var(--text); color: var(--bg); padding: 15px; border-radius: 12px; z-index: 90; align-items: center; justify-content: space-between; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+    </style>
 </head>
 <body>
 
-  <!-- ========== HEADER ========== -->
-  <header class="site-header">
-    <img src="images/rsheader.png" alt="Pipah Cookies" class="header-img">
-  </header>
+    <div id="app-container">
+        <!-- === HOME VIEW === -->
+        <div id="view-home" class="view active">
+            <div class="header-row">
+                <div>
+                    <div class="header-greeting" id="greetings">Assalamualaikum</div>
+                    <h1 class="header-title">WaktuSolatLite</h1>
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+                    <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>
+                </button>
+            </div>
 
-  <!-- ========== NAV ========== -->
-  <nav class="site-nav">
-    <ul class="nav-list">
-      <li><a href="#syarat">Syarat</a></li>
-      <li><a href="#products">Produk</a></li>
-      <li><a href="#contact">Hubungi</a></li>
-    </ul>
-  </nav>
+            <div id="announcementBanner"></div>
 
-  <main>
-    <section id="syarat" class="section fade-up">
-      <h2 style="text-align:center;color:var(--primary-dark);">Syarat - Syarat Reseller</h2>
-      <div class="syarat-box">
-        <p style="margin:0;font-weight:700;color:var(--primary-dark)">Harap baca sebelum membuat pesanan:</p>
-        <ul>
-          <li><strong>Deposit:</strong> 50% deposit diperlukan semasa membuat pesanan.</li>
-          <li><strong>Masa Siap:</strong> Freshly baked upon order — biasanya 2–3 hari bergantung kepada kuantiti.</li>
-          <li><strong>Bayaran Penuh:</strong> Bayaran penuh perlu diselesaikan semasa pengambilan.</li>
-          <li><strong>Harga Jualan:</strong> Retail price dikawal bebas oleh reseller.</li>
-          <li><strong>Pembatalan:</strong> Pembatalan selepas 24 jam dari tempahan akan kehilangan deposit.</li>
-        </ul>
-      </div>
-    </section>
+            <div class="hero-card">
+                <div class="prayer-countdown-label">Next Prayer: <span id="nextPrayerName">Loading...</span></div>
+                <div class="prayer-countdown-time" id="countdown">--:--:--</div>
+                <div class="location-pill">
+                    <span id="locationText">Locating...</span>
+                </div>
+            </div>
 
-    <section id="products" class="section fade-up">
-      <h2 style="text-align:center;color:var(--primary-dark);margin-bottom:16px">Produk</h2>
+            <div class="card" style="margin-top: 20px;">
+                <div class="section-title">Today's Prayers <span style="font-size:12px; color:var(--text-muted)" id="hijriDate">...</span></div>
+                <div id="prayerList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
 
-      <div class="products" id="product-grid">
-        <!-- Product cards will be injected by JS for easier maintenance -->
-      </div>
-    </section>
-     
-     <!-- GALLERY -->
-  <!-- Gallery Section -->
-<section id="gallery">
-  <iframe 
-      src="gambar2reseller.html" 
-      width="100%" 
-      style="border:none;" 
-      id="galleryIframe" 
-      scrolling="no">
-  </iframe>
-</section>
-
-    <section id="contact" class="section fade-up">
-      <h2>Hubungi Kami</h2>
-      <p class="lead">Untuk pesanan atau pertanyaan, hantarkan mesej melalui WhatsApp atau follow & chat di Shopee / TikTok / Facebook kami.</p>
-      <p><a class="btn secondary" href="#" onclick="window.open('https://wa.me/601121243407','_blank')">Chat di WhatsApp</a></p>
-    </section>
-  </main>
-
-  <!-- FLOATING CART ICON -->
-  <button id="cart-icon" aria-label="Troli" onclick="toggleCart()">
-    <span class="icon">🛒</span>
-    <span id="cart-badge" class="badge">0</span>
-  </button>
-
-  <!-- CART PANEL -->
-  <aside id="cart-panel" class="cart-panel" aria-live="polite" aria-hidden="true">
-    <div class="cart-header">
-      <h3>Troli Anda</h3>
-      <button class="close-cart" onclick="toggleCart()">✕</button>
-    </div>
-
-    <ul id="cart-items" class="cart-items"></ul>
-
-    <div class="cart-summary">
-      <p id="cart-total">Jumlah: RM 0.00</p>
-    </div>
-
-    <div id="checkout-form" class="checkout-form hidden">
-      <label for="orderId">No. Pesanan</label>
-      <input type="text" id="orderId" name="orderId" readonly style="background:#f4f4f4;">
-      <input id="full-name" type="text" placeholder="Nama penuh" />
-      <textarea id="full-address" placeholder="Alamat penuh (boleh kosong untuk pickup)"></textarea>
-      <button class="btn checkout" id="go-to-summary">Teruskan ke Ringkasan</button>
-    </div>
-
-    <div class="cart-actions">
-      <button class="btn primary" id="open-checkout" onclick="showCheckoutForm()">Checkout</button>
-    </div>
-  </aside>
-
- <script>
-// ===== CONFIG =====
-const WHATSAPP_NUMBER = '601121243407'; 
-
-// ✅ Each product now has its own tiers
-// You can EASILY edit this part on GitHub to add/remove products
-const products = [
-  {
-    id: 'p1',
-    title: 'Seasalt Cookies (65pcs)',
-    images: ['images/ss1.jpg','images/ss2.jpg','images/ss3.jpg'],
-    oldPrice: 16,
-    tiers: [
-      { max: 4, price: 16 },
-      { max: 9, price: 15 },
-      { max: Infinity, price: 14 }
-    ]
-  },
-  {
-    id: 'p2',
-    title: 'ChocHazelnut Button (38pcs)',
-    images: ['images/ch1.jpg','images/ch2.jpg','images/ch3.jpg'],
-    oldPrice: 22,
-    tiers: [
-      { max: 4, price: 22 },
-      { max: 9, price: 21 },
-      { max: Infinity, price: 20 }
-    ]
-  },
-  {
-    id: 'p3',
-    title: 'Brownies Cookies (70pcs)',
-    images: ['images/br1.jpg','images/br2.jpg','images/br3.jpg'],
-    oldPrice: 17,
-    tiers: [
-      { max: 4, price: 17 },
-      { max: 9, price: 16 },
-      { max: Infinity, price: 15 }
-    ]
-  },
-  {
-    id: 'p4',
-    title: 'Black Cookies (80pcs)',
-    images: ['images/bc1.jpg','images/bc2.jpg','images/bc3.jpg'],
-    oldPrice: 22,
-    tiers: [
-      { max: 5, price: 19 },
-      { max: 9, price: 18 },
-      { max: Infinity, price: 17 }
-    ]
-  },
-  {
-    id: 'p5',
-    title: 'RedVelvet Button',
-    images: ['images/rv1.jpg','images/rv2.jpg','images/rv3.jpg'],
-    oldPrice: 22,
-    tiers: [
-      { max: 4, price: 20 },
-      { max: 9, price: 19},
-      { max: Infinity, price: 18 }
-    ]
-  },
-  {
-    id: 'p6',
-    title: 'DarkChoc Cookies (70pcs)',
-    images: ['images/dc1.jpg','images/dc2.jpg','images/dc3.jpg'],
-    oldPrice: 22,
-    tiers: [
-      { max: 4, price: 19 },
-      { max: 9, price: 18 },
-      { max: Infinity, price: 17 }
-    ]
-  }
-];
-
-// ===== LOCAL STORAGE =====
-const CART_KEY = 'pipah_cart_v3';
-
-// ===== APP STATE =====
-let cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-
-// ===== INIT =====
-document.addEventListener('DOMContentLoaded', ()=>{
-  renderProducts();
-  updateCartUI();
-
-  document.querySelectorAll('.fade-up').forEach((el,i)=> el.style.animationDelay = (i*80)+'ms');
-
-  const orderIdInput = document.getElementById('orderId');
-  if(orderIdInput) orderIdInput.value = getNextOrderNumber();
-
-  document.getElementById('go-to-summary').addEventListener('click', ()=>{
-    const name = document.getElementById('full-name').value.trim();
-    const address = document.getElementById('full-address').value.trim();
-    if(!name){ alert('Sila isi nama penuh.'); return; }
-
-    const order = {
-      orderId: document.getElementById('orderId').value,
-      name, address,
-      date: new Date().toISOString(),
-      items: cart
-    };
-    localStorage.setItem('pipah_reseller_order', JSON.stringify(order));
-    window.open('reseller-summary.html', '_blank');
-  });
-});
-
-// ===== HELPER: Get price per product and quantity =====
-function getUnitPriceForQty(productId, qty){
-  const prod = products.find(p => p.id === productId);
-  if(!prod || !prod.tiers) return 0;
-  for(const t of prod.tiers){
-    if(qty <= t.max) return t.price;
-  }
-  return prod.tiers[prod.tiers.length - 1].price;
-}
-
-// ===== RENDER PRODUCTS =====
-function renderProducts(){
-  const grid = document.getElementById('product-grid');
-  grid.innerHTML = '';
-  products.forEach(prod => {
-    const card = document.createElement('article');
-    card.className = 'card product-card';
-    card.innerHTML = `
-      <div class="product-slider" data-id="${prod.id}">
-        ${prod.images.map((src,i)=>`<img src="${src}" class="product-img ${i===0?'active':''}" alt="${prod.title}">`).join('')}
-        <div class="slider-dots">
-          ${prod.images.map((_,i)=>`<span class="dot ${i===0?'active':''}" data-index="${i}"></span>`).join('')}
+            <!-- HADITH PART -->
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div class="section-title" style="margin-bottom:5px;">Daily Hadith</div>
+                    <button class="bookmark-btn" id="hadithBookmark" onclick="toggleHadithBookmark(this)">
+                        <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    </button>
+                </div>
+                <div id="dailyHadithContainer">
+                    <div class="hadith-text" id="hadithTextContent">Loading Hadith...</div>
+                    <div class="hadith-source" id="hadithSourceContent"></div>
+                </div>
+            </div>
         </div>
-      </div>
-      <h3>${prod.title}</h3>
-      <p class="old-price">RM ${prod.oldPrice}</p>
-      <div style="font-size:14px;color:#444;margin-bottom:6px">
-        Harga per unit ikut kuantiti (auto update bila ubah kuantiti)
-      </div>
-      <div class="qty-control">
-        <button class="qty-btn" data-action="minus" data-id="${prod.id}">−</button>
-        <input id="qty-${prod.id}" class="qty-input" type="number" value="1" min="1">
-        <button class="qty-btn" data-action="plus" data-id="${prod.id}">+</button>
-      </div>
-      <div style="margin-bottom:8px">
-        Unit price: <strong id="unit-${prod.id}">RM ${getUnitPriceForQty(prod.id,1).toFixed(2)}</strong>
-      </div>
-      <button class="btn primary add-btn" data-id="${prod.id}">Tambah ke Troli</button>
-    `;
-    grid.appendChild(card);
-  });
 
-  document.querySelectorAll('.product-slider').forEach(initSlider);
-  document.querySelectorAll('.qty-btn').forEach(b=> b.addEventListener('click', onQtyButton));
-  document.querySelectorAll('.qty-input').forEach(inp=> inp.addEventListener('input', onQtyInput));
-  document.querySelectorAll('.add-btn').forEach(b=> b.addEventListener('click', onAddToCart));
-}
+        <!-- === QURAN VIEW === -->
+        <div id="view-quran" class="view">
+            <h1 class="header-title" style="margin-bottom: 20px;">Al Quran</h1>
+            <select id="quranLangSelect" onchange="loadQuranList()" style="width:100%; padding:12px; border-radius:12px; margin-bottom:15px; background:var(--surface); color:var(--text); border:1px solid var(--border);">
+                <option value="ms.basmeih">Malay</option>
+                <option value="en.sahih">English</option>
+                <option value="id.indonesian">Indonesian</option>
+                <option value="zh.mazhonggang">Mandarin</option>
+            </select>
+            <div id="surahList"></div>
+        </div>
 
-function initSlider(container){
-  const imgs = container.querySelectorAll('.product-img');
-  const dots = container.querySelectorAll('.dot');
-  let idx = 0;
+        <!-- === TOOLS VIEW === -->
+        <div id="view-tools" class="view">
+            <h1 class="header-title" style="margin-bottom: 20px;">Tools</h1>
+            <div class="card">
+                <div class="section-title">Qibla Compass</div>
+                <iframe src="qiblat.html" class="iframe-wrap" style="height: 350px;"></iframe>
+            </div>
+            <div class="card">
+                <div class="section-title">Takwim Hijri</div>
+                <iframe src="Takwim-hijri.html" class="iframe-wrap" style="height: 500px;"></iframe>
+            </div>
+        </div>
 
-  // Manual click
-  dots.forEach(d => d.addEventListener('click', ()=>{
-    idx = Number(d.dataset.index);
-    updateSlide();
-    resetAutoSlide();
-  }));
+        <!-- === DUAS VIEW === -->
+        <div id="view-more" class="view">
+            <h1 class="header-title" style="margin-bottom: 20px;">Duas & Bookmarks</h1>
+            <div class="section-title">Saved Bookmarks</div>
+            <div id="bookmarksList" class="card" style="min-height:50px;"></div>
+            
+            <div class="section-title">Daily Duas</div>
+            <div id="duasContainer"></div>
+        </div>
+    </div>
 
-  // Auto-slide every 3 seconds
-  let interval = setInterval(nextSlide, 3000);
+    <!-- PWA INSTALL -->
+    <div id="pwaInstall">
+        <div style="font-weight:600">Install WaktuSolatLite</div>
+        <button onclick="installPWA()" style="background:var(--bg); color:var(--text); border:none; padding:8px 16px; border-radius:8px; font-weight:700;">Install</button>
+    </div>
 
-  function nextSlide(){
-    idx = (idx + 1) % imgs.length;
-    updateSlide();
-  }
+    <!-- READER MODAL -->
+    <div id="readerModal">
+        <div class="reader-header">
+            <div style="font-weight:700" id="readerTitle">Surah</div>
+            <button onclick="closeReader()" style="background:none; border:none; font-size:24px; color:var(--text);">&times;</button>
+        </div>
+        <div class="reader-content" id="readerContent"></div>
+    </div>
 
-  function updateSlide(){
-    imgs.forEach((im,i)=> im.classList.toggle('active', i===idx));
-    dots.forEach((dd,i)=> dd.classList.toggle('active', i===idx));
-  }
+    <!-- NAVIGATION -->
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="switchTab('home', this)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span class="nav-label">Home</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('quran', this)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+            <span class="nav-label">Quran</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('tools', this)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+            <span class="nav-label">Tools</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('more', this)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            <span class="nav-label">Saved</span>
+        </button>
+    </nav>
 
-  function resetAutoSlide(){
-    clearInterval(interval);
-    interval = setInterval(nextSlide, 3000);
-  }
-}
+<script>
+    // --- 1. STATE & CONFIG ---
+    const STATE = {
+        lat: 3.1390, lon: 101.6869, // Default KL
+        prayerTimes: null,
+        theme: localStorage.getItem('wsl_theme') || 'light',
+        notifSettings: JSON.parse(localStorage.getItem('wsl_notif_settings') || '{}'), // { Fajr: 'sound', Dhuhr: 'silent', ... }
+        notified: {},
+        bookmarks: JSON.parse(localStorage.getItem('wsl_bookmarks') || '[]')
+    };
 
-function onQtyButton(e){
-  const id = e.currentTarget.dataset.id;
-  const action = e.currentTarget.dataset.action;
-  const inp = document.getElementById('qty-'+id);
-  let val = Math.max(1, parseInt(inp.value||'1'));
-  val = action === 'plus' ? val+1 : Math.max(1, val-1);
-  inp.value = val;
-  updateUnitPriceDisplay(id, val);
-}
+    const prayerNames = {Fajr:'Subuh', Dhuhr:'Zohor', Asr:'Asar', Maghrib:'Maghrib', Isha:'Isyak'};
+    const prayerKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
-function onQtyInput(e){
-  const id = e.currentTarget.id.replace('qty-','');
-  let v = parseInt(e.currentTarget.value||'1');
-  if(isNaN(v)||v<1) v=1;
-  e.currentTarget.value=v;
-  updateUnitPriceDisplay(id,v);
-}
+    // --- 2. INIT ---
+    window.addEventListener('DOMContentLoaded', () => {
+        applyTheme();
+        loadAdminData();
+        getLocation();
+        updateGreeting();
+        loadDuas();
+        renderBookmarksList();
+        
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+        if (window.Notification) Notification.requestPermission();
+    });
 
-function updateUnitPriceDisplay(id, qty){
-  const el = document.getElementById('unit-'+id);
-  if(!el) return;
-  const price = getUnitPriceForQty(id, qty);
-  el.textContent = 'RM '+price.toFixed(2);
-}
+    // --- 3. THEME LOGIC ---
+    function toggleTheme() {
+        STATE.theme = STATE.theme === 'light' ? 'dark' : 'light';
+        localStorage.setItem('wsl_theme', STATE.theme);
+        applyTheme();
+    }
 
-function onAddToCart(e){
-  const id = e.currentTarget.dataset.id;
-  const qty = parseInt(document.getElementById('qty-'+id).value||'1');
-  const unit = getUnitPriceForQty(id, qty);
-  const prod = products.find(p=>p.id===id);
-  const existing = cart.find(i=> i.id===id && i.unitPrice===unit);
-  if(existing){ existing.qty += qty; } 
-  else { cart.push({ id, name:prod.title, unitPrice:unit, qty }); }
-  saveCart(); updateCartUI();
-  const icon = document.getElementById('cart-icon');
-  icon.classList.add('added'); setTimeout(()=> icon.classList.remove('added'),480);
-}
+    function applyTheme() {
+        document.documentElement.setAttribute('data-theme', STATE.theme);
+        const icon = document.getElementById('themeIcon');
+        if(STATE.theme === 'dark') {
+            // Moon icon path
+            icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+        } else {
+            // Sun icon path
+            icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>';
+        }
+    }
 
-function saveCart(){ localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
+    // --- 4. ADMIN DATA (Hadith/Announce) ---
+    function loadAdminData() {
+        // Announcement
+        const ann = localStorage.getItem('wsl_announcement');
+        if (ann) { 
+            const el = document.getElementById('announcementBanner');
+            el.style.display = 'block'; 
+            el.textContent = ann; 
+        }
+        
+        // Hadith
+        const savedHadiths = JSON.parse(localStorage.getItem('wsl_custom_hadiths') || '[]');
+        const container = document.getElementById('hadithTextContent');
+        const source = document.getElementById('hadithSourceContent');
+        
+        if (savedHadiths.length > 0) {
+            const r = savedHadiths[Math.floor(Math.random() * savedHadiths.length)];
+            container.textContent = `"${r.text}"`;
+            source.textContent = r.source;
+        } else {
+            container.textContent = "Loading Hadith...";
+            // Fallback default
+            setTimeout(() => {
+                container.textContent = "\"The best among you is the one who learns the Quran and teaches it.\"";
+                source.textContent = "Sahih Bukhari";
+            }, 500);
+        }
+        checkHadithBookmark();
+    }
 
-function updateCartUI(){
-  const list = document.getElementById('cart-items');
-  const totalEl = document.getElementById('cart-total');
-  const badge = document.getElementById('cart-badge');
-  list.innerHTML='';
-  let subtotal=0, count=0;
+    // --- 5. PRAYER TIMES & NOTIFICATION UI ---
+    function getLocation() {
+        if(navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                STATE.lat = pos.coords.latitude; STATE.lon = pos.coords.longitude;
+                fetchTimes();
+                document.getElementById('locationText').textContent = "Current Location";
+            }, () => { fetchTimes(); });
+        } else { fetchTimes(); }
+    }
 
-  cart.forEach((item,idx)=>{
-    subtotal += item.unitPrice*item.qty; count += item.qty;
-    const li = document.createElement('li');
-    const left = document.createElement('div');
-    left.style.flex='1';
-    left.innerHTML = `<strong>${escapeHtml(item.name)}</strong>
-      <div style="font-size:12px;color:#666">${item.qty} × RM ${item.unitPrice.toFixed(2)} = RM ${(item.unitPrice*item.qty).toFixed(2)}</div>`;
-    const middle = document.createElement('div');
-    const minus = document.createElement('button');
-    minus.textContent='−'; minus.onclick = ()=> changeCartQty(idx,-1);
-    const qtySpan = document.createElement('span');
-    qtySpan.textContent=' '+item.qty+' '; qtySpan.style.fontWeight='700';
-    const plus = document.createElement('button');
-    plus.textContent='+'; plus.onclick = ()=> changeCartQty(idx,1);
-    middle.append(minus, qtySpan, plus);
-    const right = document.createElement('div');
-    const rem = document.createElement('button');
-    rem.textContent='x';
-    rem.style.background='#ff4d4d';
-    rem.style.color='#fff';
-    rem.style.border='none';
-    rem.style.padding='6px 8px';
-    rem.style.borderRadius='6px';
-    rem.onclick = ()=> removeCartItem(idx);
-    right.appendChild(rem);
-    li.append(left,middle,right);
-    list.appendChild(li);
-  });
+    async function fetchTimes() {
+        try {
+            const res = await fetch(`https://api.aladhan.com/v1/timings/${Math.floor(Date.now()/1000)}?latitude=${STATE.lat}&longitude=${STATE.lon}&method=11`);
+            const data = await res.json();
+            STATE.prayerTimes = data.data.timings;
+            document.getElementById('hijriDate').textContent = `${data.data.date.hijri.day} ${data.data.date.hijri.month.en} ${data.data.date.hijri.year}`;
+            renderPrayerList();
+            startTimer();
+        } catch(e) {}
+    }
 
-  totalEl.innerHTML = `<strong style="font-size:16px">Jumlah: RM ${subtotal.toFixed(2)}</strong>`;
-  badge.textContent = count;
-  saveCart();
-}
+    function renderPrayerList() {
+        const list = document.getElementById('prayerList');
+        list.innerHTML = '';
+        
+        prayerKeys.forEach(key => {
+            const setting = STATE.notifSettings[key] || 'sound'; // Default sound
+            
+            const div = document.createElement('div');
+            div.className = 'prayer-row';
+            div.innerHTML = `
+                <div class="prayer-info">
+                    <span>${prayerNames[key]}</span>
+                    <span class="prayer-time">${convertTo12Hour(STATE.prayerTimes[key])}</span>
+                </div>
+                <button class="bell-btn ${setting}" onclick="cycleNotif('${key}')">
+                    ${getBellIcon(setting)}
+                </button>
+            `;
+            list.appendChild(div);
+        });
+    }
 
-function changeCartQty(index, delta){
-  if(!cart[index]) return;
-  cart[index].qty += delta;
-  if(cart[index].qty<=0){ cart.splice(index,1); }
-  saveCart(); updateCartUI();
-}
+    function getBellIcon(mode) {
+        if(mode === 'sound') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`;
+        if(mode === 'silent') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`; // bell-off
+        return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`; // x-circle
+    }
 
-function removeCartItem(index){
-  cart.splice(index,1);
-  saveCart(); updateCartUI();
-}
+    function cycleNotif(key) {
+        const modes = ['sound', 'silent', 'off'];
+        let current = STATE.notifSettings[key] || 'sound';
+        let next = modes[(modes.indexOf(current) + 1) % 3];
+        
+        STATE.notifSettings[key] = next;
+        localStorage.setItem('wsl_notif_settings', JSON.stringify(STATE.notifSettings));
+        renderPrayerList(); // Re-render to update icon
+    }
 
-function toggleCart(){
-  const panel = document.getElementById('cart-panel');
-  const isShown = panel.classList.contains('show');
-  panel.classList.toggle('show', !isShown);
-  panel.setAttribute('aria-hidden', isShown ? 'true' : 'false');
-}
+    function convertTo12Hour(t) { let [h,m]=t.split(':'); h=parseInt(h); const am=h>=12?'PM':'AM'; h=h%12||12; return `${h}:${m} ${am}`; }
 
-function showCheckoutForm(){
-  document.getElementById('checkout-form').classList.remove('hidden');
-  document.getElementById('open-checkout').style.display='none';
-  const panel = document.getElementById('cart-panel');
-  panel.scrollTop = panel.scrollHeight;
-}
+    // --- 6. TIMER & NOTIFICATION LOGIC ---
+    function startTimer() {
+        setInterval(() => {
+            if(!STATE.prayerTimes) return;
+            const now = new Date();
+            let next = null, nTime = null;
 
-// ===== ORDER ID =====
-function formatOrderId(num){ return 'RS'+num.toString().padStart(8,'0'); }
-function getNextOrderNumber(){ let last = parseInt(localStorage.getItem('orderCounter')||'0',10); return formatOrderId(last+1); }
-function incrementOrderCounter(){ let last = parseInt(localStorage.getItem('orderCounter')||'0',10); localStorage.setItem('orderCounter', (last+1).toString()); }
+            for(let k of prayerKeys) {
+                const [h,m] = STATE.prayerTimes[k].split(':');
+                const p = new Date(); p.setHours(h,m,0);
+                if(p > now) { next = k; nTime = p; break; }
+            }
+            if(!next) { next='Fajr'; const [h,m]=STATE.prayerTimes['Fajr'].split(':'); nTime=new Date(); nTime.setDate(nTime.getDate()+1); nTime.setHours(h,m,0); }
 
-// ===== UTIL =====
-function escapeHtml(text){ return String(text).replace(/[&<>"]/, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+            const diff = nTime - now;
+            const hh = Math.floor(diff/3600000).toString().padStart(2,'0');
+            const mm = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
+            const ss = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
+            
+            document.getElementById('countdown').textContent = `${hh}:${mm}:${ss}`;
+            document.getElementById('nextPrayerName').textContent = prayerNames[next];
+
+            checkNotifications(STATE.prayerTimes);
+        }, 1000);
+    }
+
+    function checkNotifications(pt) {
+        const now = new Date();
+        const dateStr = now.toDateString();
+        
+        // Reset daily tracker
+        if(localStorage.getItem('wsl_last_date') !== dateStr) {
+            STATE.notified = {};
+            localStorage.setItem('wsl_last_date', dateStr);
+        }
+
+        prayerKeys.forEach(key => {
+            const setting = STATE.notifSettings[key] || 'sound';
+            if (setting === 'off') return;
+
+            const [h, m] = pt[key].split(':');
+            const pTime = new Date(); pTime.setHours(h, m, 0, 0);
+
+            // 10 mins before
+            const diff10 = (now - new Date(pTime.getTime() - 10*60000)) / 1000;
+            if (diff10 >= 0 && diff10 < 60 && !STATE.notified[`${key}_10`]) {
+                sendNoti(`10 Mins to ${prayerNames[key]}`, `Prepare for wudhu.`, setting === 'silent');
+                STATE.notified[`${key}_10`] = true;
+            }
+
+            // Exact Time
+            const diffNow = (now - pTime) / 1000;
+            if (diffNow >= 0 && diffNow < 60 && !STATE.notified[`${key}_now`]) {
+                sendNoti(`Waktu ${prayerNames[key]}`, `Time for ${prayerNames[key]} prayer.`, setting === 'silent');
+                STATE.notified[`${key}_now`] = true;
+            }
+        });
+    }
+
+    function sendNoti(title, body, isSilent) {
+        if (Notification.permission === 'granted') {
+            new Notification(title, { 
+                body: body, 
+                icon: 'Images/icon-512.png',
+                silent: isSilent 
+            });
+        }
+    }
+
+    // --- 7. QURAN & BOOKMARKS ---
+    async function loadQuranList() {
+        const list = document.getElementById('surahList');
+        if(list.children.length > 0) return;
+        list.innerHTML = 'Loading...';
+        try {
+            const res = await fetch('https://api.alquran.cloud/v1/surah');
+            const data = await res.json();
+            list.innerHTML = '';
+            data.data.forEach(s => {
+                const el = document.createElement('div');
+                el.className = 'surah-item';
+                el.innerHTML = `
+                    <div class="surah-num">${s.number}</div>
+                    <div style="flex:1">
+                        <div style="font-weight:700">${s.englishName}</div>
+                        <div style="font-size:12px;color:var(--text-muted)">${s.englishNameTranslation}</div>
+                    </div>
+                    <div class="surah-arabic">${s.name}</div>
+                `;
+                el.onclick = () => openReader(s.number, s.englishName);
+                list.appendChild(el);
+            });
+        } catch(e) {}
+    }
+
+    async function openReader(num, title) {
+        document.getElementById('readerModal').classList.add('open');
+        document.getElementById('readerTitle').textContent = title;
+        document.getElementById('readerContent').innerHTML = 'Loading Ayahs...';
+        
+        const lang = document.getElementById('quranLangSelect').value;
+        try {
+            const [ar, tr] = await Promise.all([
+                fetch(`https://api.alquran.cloud/v1/surah/${num}`),
+                fetch(`https://api.alquran.cloud/v1/surah/${num}/${lang}`)
+            ]);
+            const d1 = await ar.json(); const d2 = await tr.json();
+            
+            let html = '';
+            if(num!==1 && num!==9) html += `<div style="text-align:center;font-family:Amiri;font-size:24px;margin-bottom:20px;">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>`;
+            
+            d1.data.ayahs.forEach((a,i) => {
+                const trans = d2.data.ayahs[i].text;
+                const isSaved = isAyahBookmarked(num, a.numberInSurah);
+                
+                html += `
+                    <div class="ayah-block">
+                        <div class="ayah-tools">
+                            <span style="font-size:12px;color:var(--text-muted)">${num}:${a.numberInSurah}</span>
+                            <button class="bookmark-btn ${isSaved?'saved':''}" onclick="toggleAyahBookmark(this, ${num}, ${a.numberInSurah}, '${a.text.replace(/'/g, "")}', '${trans.replace(/'/g, "")}', '${title}')">
+                                <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="ayah-arabic">${a.text}</div>
+                        <div class="ayah-trans">${trans}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('readerContent').innerHTML = html;
+        } catch(e){ document.getElementById('readerContent').innerHTML = 'Error loading.'; }
+    }
+
+    function toggleAyahBookmark(btn, surahNum, ayahNum, arText, trText, surahName) {
+        const id = `ayah_${surahNum}_${ayahNum}`;
+        const idx = STATE.bookmarks.findIndex(b => b.id === id);
+        
+        if (idx > -1) {
+            STATE.bookmarks.splice(idx, 1);
+            btn.classList.remove('saved');
+        } else {
+            STATE.bookmarks.push({ id, type:'ayah', surahNum, ayahNum, arText, trText, surahName });
+            btn.classList.add('saved');
+        }
+        saveBookmarks();
+    }
+
+    function isAyahBookmarked(s, a) {
+        return STATE.bookmarks.some(b => b.id === `ayah_${s}_${a}`);
+    }
+
+    // --- HADITH BOOKMARK ---
+    function toggleHadithBookmark(btn) {
+        const text = document.getElementById('hadithTextContent').textContent;
+        const src = document.getElementById('hadithSourceContent').textContent;
+        const id = `hadith_${text.substring(0,10)}`;
+        const idx = STATE.bookmarks.findIndex(b => b.id === id);
+
+        if (idx > -1) {
+            STATE.bookmarks.splice(idx, 1);
+            btn.classList.remove('saved');
+        } else {
+            STATE.bookmarks.push({ id, type:'hadith', text, src });
+            btn.classList.add('saved');
+        }
+        saveBookmarks();
+    }
+
+    function checkHadithBookmark() {
+        const text = document.getElementById('hadithTextContent').textContent;
+        const id = `hadith_${text.substring(0,10)}`;
+        const btn = document.getElementById('hadithBookmark');
+        if(STATE.bookmarks.some(b => b.id === id)) btn.classList.add('saved');
+        else btn.classList.remove('saved');
+    }
+
+    // --- GENERIC BOOKMARK UTILS ---
+    function saveBookmarks() {
+        localStorage.setItem('wsl_bookmarks', JSON.stringify(STATE.bookmarks));
+        renderBookmarksList();
+    }
+
+    function renderBookmarksList() {
+        const el = document.getElementById('bookmarksList');
+        if (STATE.bookmarks.length === 0) {
+            el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;text-align:center;">No bookmarks yet.</div>';
+            return;
+        }
+        el.innerHTML = '';
+        STATE.bookmarks.forEach(b => {
+            const div = document.createElement('div');
+            div.style.borderBottom = '1px solid var(--border)';
+            div.style.padding = '10px 0';
+            div.style.fontSize = '13px';
+            
+            if (b.type === 'ayah') {
+                div.innerHTML = `<div><strong>${b.surahName} (${b.surahNum}:${b.ayahNum})</strong></div><div style="color:var(--text-muted)">${b.trText.substring(0,50)}...</div>`;
+            } else {
+                div.innerHTML = `<div><strong>Hadith:</strong> ${b.text.substring(0,50)}...</div>`;
+            }
+            el.appendChild(div);
+        });
+    }
+
+    // --- UTILS ---
+    function updateGreeting() {
+        const h = new Date().getHours();
+        document.getElementById('greetings').textContent = `Assalamualaikum, ${h < 12 ? 'Good Morning' : h < 18 ? 'Good Afternoon' : 'Good Evening'}`;
+    }
+    function loadDuas() {
+        const d = JSON.parse(localStorage.getItem('wsl_custom_duas') || '[]');
+        const container = document.getElementById('duasContainer');
+        container.innerHTML = '';
+        d.forEach(x => {
+            container.innerHTML += `<div class="card"><div class="section-title">${x.t}</div><div style="font-family:Amiri;text-align:right;font-size:20px;color:var(--primary);margin:10px 0;">${x.a}</div><div style="color:var(--text-muted)">${x.m}</div></div>`;
+        });
+    }
+    function switchTab(id, btn) {
+        document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+        document.getElementById('view-'+id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+        btn.classList.add('active');
+        if(id==='quran') loadQuranList();
+    }
+    function closeReader(){ document.getElementById('readerModal').classList.remove('open'); }
+    
+    let defPrompt; window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();defPrompt=e;document.getElementById('pwaInstall').style.display='flex'});
+    function installPWA(){if(defPrompt)defPrompt.prompt();}
 </script>
-   <script>
-  // Listen to messages from iframe (gallery.html)
-  window.addEventListener('message', function(e) {
-    if (e.data.galleryHeight) {
-      const iframe = document.getElementById('galleryIframe');
-      iframe.style.height = e.data.galleryHeight + 'px';
-    }
-  });
- </script>
-   <script>
-  // Listen to messages from iframe (gallery.html)
-  window.addEventListener('message', function(e) {
-    if (e.data.galleryHeight) {
-      const iframe = document.getElementById('galleryIframe');
-      iframe.style.height = e.data.galleryHeight + 'px';
-    }
-  });
- </script>
 </body>
 </html>
+
+
